@@ -4,9 +4,8 @@ namespace App\Services;
 
 use App\Helpers\HttpClientHelper;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Contracts\Cache\CacheInterface;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Exception;
 
 class StationService
 {
@@ -17,19 +16,18 @@ class StationService
     public function __construct(
         HttpClientHelper $httpClientHelper,
         CacheInterface $cache
-    )
-    {
+    ) {
         $this->cache = $cache;
         $this->httpClientHelper = $httpClientHelper;
     }
 
     /**
      * @throws InvalidArgumentException
-     * @throws \Exception
+     * @throws Exception
      */
     public function getRally(): array
     {
-        $cachedValue = $this->cache->getItem(self::CACHE_KEY . '__rally');
+        $cachedValue = $this->cache->getItem(self::CACHE_KEY.'__rally');
 
         if (!$cachedValue->isHit()) {
             $stations = $this->httpClientHelper->fetchFromApi(
@@ -47,7 +45,7 @@ class StationService
 
     /**
      * @throws InvalidArgumentException
-     * @throws \Exception
+     * @throws Exception
      */
     public function getAll(?string $lang = 'en'): array
     {
@@ -65,7 +63,7 @@ class StationService
                 $translationName = $station['translations'][$lang]['name'] ?? '';
                 $results[$station['id']] = [
                     'name' => "{$countryName} > {$translationName}",
-                    "country" => strtolower($station['country_translations']['en']['name']),
+                    'country' => strtolower($station['country_translations']['en']['name']),
                 ];
             }
 
@@ -79,7 +77,7 @@ class StationService
 
     /**
      * @throws InvalidArgumentException
-     * @throws \Exception
+     * @throws Exception
      */
     public function getById(string $id, ?string $lang = 'en'): array
     {
@@ -88,11 +86,12 @@ class StationService
         $cachedValue = $this->cache->getItem(self::CACHE_KEY."__{$id}");
 
         if (!$cachedValue->isHit()) {
-            $cachedValue->set($this->httpClientHelper->fetchFromApi(
-                'rally/stations',
-                'rally.fetchRoutes',
-                $id
-            )
+            $cachedValue->set(
+                $this->httpClientHelper->fetchFromApi(
+                    'rally/stations',
+                    'rally.fetchRoutes',
+                    $id
+                )
             );
             $cachedValue->expiresAfter(3600);
             $this->cache->save($cachedValue);
@@ -122,7 +121,7 @@ class StationService
             $id = $station['id'];
             $results[$id] = [
                 'name' => $this->formattedStationName($station),
-                "country" => strtolower($station['city']['country_name']),
+                'country' => strtolower($station['city']['country_name']),
             ];
         }
 

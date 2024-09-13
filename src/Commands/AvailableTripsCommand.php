@@ -2,9 +2,6 @@
 
 namespace App\Commands;
 
-use App\Helpers\ClientHttpHelper;
-use App\Helpers\HttpClientHelper;
-use App\Services\StationService;
 use App\Services\TripService;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Console\Command\Command;
@@ -13,11 +10,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\HttpClient\HttpClient;
 
 class AvailableTripsCommand extends Command
 {
-
     protected function configure(): void
     {
         $this
@@ -58,7 +53,7 @@ class AvailableTripsCommand extends Command
             $io = new SymfonyStyle($input, $output);
             $output->writeln("<fire>{$counter}: {$trip['pickup_station']}</>");
 
-            $output->writeln("<ocean>====================================</>");
+            $output->writeln('<ocean>====================================</>');
             foreach ($trip['dropoff_station'] as $station) {
                 $output->writeln("<ocean>{$station['name']}</>");
             }

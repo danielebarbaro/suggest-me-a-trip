@@ -2,9 +2,7 @@
 
 namespace App\Services;
 
-use AllowDynamicProperties;
 use App\Helpers\HttpClientHelper;
-use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Contracts\Cache\CacheInterface;
 
 class TripService
