@@ -27,13 +27,16 @@ class HttpClientHelper
     public function fetchFromApi(
         string $path,
         string $requestAlias,
-        ?string $id = null
+        ?string $id = null,
+        ?bool $disableLang = false
     ): array
     {
-        $uri = "{$this->baseUrl}/{$this->lang}/{$path}";
-        if ($id) {
-            $uri .= "/{$id}";
-        }
+        $uri = implode('/', array_filter([
+            $this->baseUrl,
+            $disableLang ? null : $this->lang,
+            $path,
+            $id
+        ], fn($part) => !is_null($part)));
 
         try {
             $response = $this->client->request('GET', $uri, [
