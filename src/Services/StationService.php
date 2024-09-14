@@ -9,7 +9,7 @@ use Exception;
 
 class StationService
 {
-    public const CACHE_KEY = 'station';
+    private const string CACHE_KEY = 'station';
     private CacheInterface $cache;
     private HttpClientHelper $httpClientHelper;
 
@@ -37,7 +37,6 @@ class StationService
             $cachedValue->set($this->processData($stations));
             $cachedValue->expiresAfter(3600);
             $this->cache->save($cachedValue);
-            echo "Fetching from API\n";
         }
 
         return $cachedValue->get();

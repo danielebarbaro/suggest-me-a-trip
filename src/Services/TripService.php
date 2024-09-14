@@ -8,17 +8,20 @@ use Symfony\Contracts\Cache\CacheInterface;
 class TripService
 {
     private CacheInterface $cache;
+    private HttpClientHelper $httpClientHelper;
 
-    public function __construct(CacheInterface $cache)
-    {
+    public function __construct(
+        HttpClientHelper $httpClientHelper,
+        CacheInterface $cache
+    ) {
         $this->cache = $cache;
+        $this->httpClientHelper = $httpClientHelper;
     }
 
     public function execute(): array
     {
         $results = [];
-        $client = new HttpClientHelper();
-        $stationsService = new StationService($client, $this->cache);
+        $stationsService = new StationService($this->httpClientHelper, $this->cache);
 
         $rallyStations = $stationsService->getRally();
 

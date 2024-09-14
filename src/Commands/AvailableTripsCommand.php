@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\Helpers\HttpClientHelper;
 use App\Services\TripService;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Console\Command\Command;
@@ -32,8 +33,10 @@ class AvailableTripsCommand extends Command
     {
         $counter = 1;
         $cache = new ArrayAdapter();
-        $tripService = new TripService($cache);
-        $trips = $tripService->execute($input->getOption('filter-by-country', null));
+        $client = new HttpClientHelper();
+
+        $tripService = new TripService($client, $cache);
+        $trips = $tripService->execute();
 
         $output->getFormatter()->setStyle(
             'fire',
