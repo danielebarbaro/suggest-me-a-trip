@@ -10,5 +10,5 @@ it('calculates the correct distance between Turin and Milan', function () {
 
     $distance = $calculator->execute($turin, $milan);
 
-    expect($distance)->toBeBetween(125.50, 125.52   );
+    expect($distance)->toBeBetween(125.50, 125.52);
 });
