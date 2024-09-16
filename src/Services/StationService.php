@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Dto\StationDto;
 use App\Helpers\HttpClientHelper;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -12,11 +13,14 @@ class StationService
     private const string CACHE_KEY = 'station';
     private CacheInterface $cache;
     private HttpClientHelper $httpClientHelper;
+    private GeoCoderService $geocoder;
 
     public function __construct(
+        GeoCoderService $geocoder,
         HttpClientHelper $httpClientHelper,
         CacheInterface $cache
     ) {
+        $this->geocoder = $geocoder;
         $this->cache = $cache;
         $this->httpClientHelper = $httpClientHelper;
     }
@@ -34,7 +38,7 @@ class StationService
                 'rally/stations',
                 'rally.startStations',
             );
-            $cachedValue->set($this->processData($stations));
+            $cachedValue->set($this->enabledStationDTOs($stations));
             $cachedValue->expiresAfter(3600);
             $this->cache->save($cachedValue);
         }
@@ -58,12 +62,17 @@ class StationService
                 true
             );
             foreach ($stations as $station) {
-                $countryName = $station['country_translations'][$lang]['name'] ?? '';
-                $translationName = $station['translations'][$lang]['name'] ?? '';
-                $results[$station['id']] = [
-                    'name' => "{$countryName} > {$translationName}",
-                    'country' => strtolower($station['country_translations']['en']['name']),
-                ];
+                $countryName = $station['country_translations']['en']['name'] ?? 'No Country Name';
+                $cityName = $station['translations']['en']['name'] ?? 'No City Name';
+                $cityCountryName = $this->formattedStationName($cityName, $countryName);
+
+                $results[$station['id']] = new StationDto(
+                    $station['id'],
+                    $cityName,
+                    $cityCountryName,
+                    $countryName,
+                    $this->getCoordinates($cityCountryName)
+                );
             }
 
             $cachedValue->set($results);
@@ -74,14 +83,8 @@ class StationService
         return $cachedValue->get();
     }
 
-    /**
-     * @throws InvalidArgumentException
-     * @throws Exception
-     */
     public function getById(string $id, ?string $lang = 'en'): array
     {
-        $stations = $this->getAll($lang);
-
         $cachedValue = $this->cache->getItem(self::CACHE_KEY."__{$id}");
 
         if (!$cachedValue->isHit()) {
@@ -96,7 +99,18 @@ class StationService
             $this->cache->save($cachedValue);
         }
 
-        $station = $cachedValue->get();
+        return $cachedValue->get();
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws Exception
+     */
+    public function getDestinationsById(string $id, ?string $lang = 'en'): array
+    {
+        $stations = $this->getAll($lang);
+        $station = $this->getById($id, $lang);
+
         $destinations = $station['returns'];
 
         return array_filter(
@@ -108,7 +122,7 @@ class StationService
         );
     }
 
-    private function processData(array $stations): array
+    private function enabledStationDTOs(array $stations): array
     {
         $results = [];
 
@@ -117,14 +131,25 @@ class StationService
                 continue;
             }
 
-            $id = $station['id'];
-            $results[$id] = [
-                'name' => $this->formattedStationName($station),
-                'country' => strtolower($station['city']['country_name']),
-            ];
+            $countryName = $station['city']['country_name'] ?? 'No City Name';
+            $cityName = $station['city']['name'] ?? 'No Country Name';
+            $cityCountryName = $this->formattedStationName($cityName, $countryName);
+
+            $results[$station['id']] = new StationDto(
+                $station['id'],
+                $cityName,
+                $cityCountryName,
+                $countryName,
+                $this->getCoordinates($cityCountryName)
+            );
         }
 
         return $results;
+    }
+
+    private function getCoordinates(string $stationName): array
+    {
+        return $this->geocoder->execute($stationName);
     }
 
     private function isEnabled(array $station): bool
@@ -132,11 +157,8 @@ class StationService
         return $station['enabled'] && $station['public'] && $station['one_way'];
     }
 
-    public function formattedStationName(array $station): string
+    private function formattedStationName(string $cityName, string $countryName): string
     {
-        $countryName = $station['city']['country_name'] ?? '';
-        $translationName = $station['name'] ?? '';
-
-        return "{$countryName} > {$translationName}";
+        return "{$cityName}, {$countryName}";
     }
 }
