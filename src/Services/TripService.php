@@ -10,14 +10,14 @@ class TripService
 {
     private CacheInterface $cache;
     private HttpClientHelper $httpClientHelper;
-    private GeoCoderService $geocoder;
+    private StationService $stationsService;
 
     public function __construct(
-        GeoCoderService $geocoder,
+        StationService $stationsService,
         HttpClientHelper $httpClientHelper,
         CacheInterface $cache
     ) {
-        $this->geocoder = $geocoder;
+        $this->stationsService = $stationsService;
         $this->cache = $cache;
         $this->httpClientHelper = $httpClientHelper;
     }
@@ -25,28 +25,33 @@ class TripService
     public function execute(): array
     {
         $results = [];
-        $stationsService = new StationService($this->geocoder, $this->httpClientHelper, $this->cache);
-
-        $rallyStations = $stationsService->getRally();
+        $rallyStations = $this->stationsService->getRally();
 
         foreach ($rallyStations as $stationId => $station) {
-            $destinations = $stationsService->getDestinationsById($stationId);
+            $destinations = $this->stationsService->getDestinationsById($stationId);
             if (empty($destinations)) {
                 continue;
             }
 
-            $countries = array_merge(
-                [$station->country],
-                array_map(fn ($destination) => $destination->country, $destinations)
-            );
+            $countries = $this->getUniqueCountries($station, $destinations);
 
             $results[] = new TripDto(
                 $station,
                 $destinations,
-                array_unique(array_map('strtolower', $countries))
+                $countries
             );
         }
 
         return $results;
+    }
+
+    private function getUniqueCountries($station, array $destinations): array
+    {
+        $countries = array_merge(
+            [$station->country],
+            array_map(fn ($destination) => $destination->country, $destinations)
+        );
+
+        return array_unique(array_map('strtolower', $countries));
     }
 }
