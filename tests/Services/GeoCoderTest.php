@@ -3,7 +3,6 @@
 use App\Services\GeoCoderService;
 use Geocoder\StatefulGeocoder;
 use Geocoder\Provider\Provider;
-use Geocoder\Query\GeocodeQuery;
 use Geocoder\Model\Coordinates;
 use Geocoder\Model\Address;
 
