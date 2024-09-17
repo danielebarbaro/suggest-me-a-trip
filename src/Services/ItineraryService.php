@@ -40,7 +40,7 @@ class ItineraryService
         array $visited,
         array &$nCityTrips,
         int $steps
-    ) {
+    ): void {
         $visited[] = $currentStation;
 
         if (count($visited) === $steps) {
@@ -64,9 +64,19 @@ class ItineraryService
         }
     }
 
-    public function calculateTripHaversineLength(array $cities): float
+    public function getTripsWithHaversineLength(array $trips): array
     {
-        return array_reduce(
+        $distances = array_map(
+            fn ($stations) => $this->calculateTripHaversineLength($stations, 0),
+            $trips
+        );
+
+        return array_combine($distances, array_values($trips));
+    }
+
+    public function calculateTripHaversineLength(array $cities, int $roundPrecision = 2): float
+    {
+        $totalDistance = array_reduce(
             array_keys($cities),
             function ($totalDistance, $index) use ($cities) {
                 if ($index === count($cities) - 1) {
@@ -89,6 +99,8 @@ class ItineraryService
             },
             0.0
         );
+
+        return round($totalDistance, $roundPrecision, PHP_ROUND_HALF_UP);
     }
 
     public function isDifferentDestinationCountry(array $visited): bool

@@ -3,14 +3,16 @@
 namespace App\Commands;
 
 use App\Helpers\HttpClientHelper;
+use App\Services\GeoCoderService;
+use App\Services\StationService;
 use App\Services\TripService;
-use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
+use Geocoder\Provider\GoogleMaps\GoogleMaps;
+use Symfony\Component\HttpClient\Psr18Client;
 
 class AvailableTripsCommand extends Command
 {
@@ -32,36 +34,38 @@ class AvailableTripsCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $counter = 1;
-        $cache = new ArrayAdapter();
-        $client = new HttpClientHelper();
 
-        $tripService = new TripService($client, $cache);
+        $provider = new GoogleMaps(new Psr18Client(), null, $_ENV['GOOGLE_MAPS_API_KEY']);
+        $geocoder = new GeoCoderService($provider);
+
+        $cache = new FilesystemAdapter();
+        $client = new HttpClientHelper();
+        $stationService = new StationService($geocoder, $client, $cache);
+
+        $tripService = new TripService($stationService, $client, $cache);
         $trips = $tripService->execute();
 
-        $output->getFormatter()->setStyle(
-            'fire',
-            new OutputFormatterStyle('red', null, ['bold'])
-        );
+        if (empty($trips)) {
+            $output->writeln('<error>No trip found.</error>');
 
-        $output->getFormatter()->setStyle(
-            'ocean',
-            new OutputFormatterStyle('blue', null, ['bold'])
-        );
+            return Command::FAILURE;
+        }
 
         foreach ($trips as $trip) {
-            if (!empty($input->getOption('filter-by-country')) && !in_array($input->getOption('filter-by-country'), $trip['countries'])) {
+            if (!empty($input->getOption('filter-by-country')) && !in_array(
+                $input->getOption('filter-by-country'),
+                $trip['countries']
+            )) {
                 continue;
             }
 
-            $io = new SymfonyStyle($input, $output);
-            $output->writeln("<fire>{$counter}: {$trip['pickup_station']}</>");
-
-            $output->writeln('<ocean>====================================</>');
-            foreach ($trip['dropoff_station'] as $station) {
-                $output->writeln("<ocean>{$station['name']}</>");
+            $output->writeln("<fg=bright-cyan>{$counter}: {$trip->pickupStation->fullName}</>");
+            $output->writeln('<fg=bright-green>====================================</>');
+            foreach ($trip->dropoffStation as $station) {
+                $output->writeln("<fg=bright-green>{$station->fullName}</>");
             }
 
-            $io->newLine(2);
+            $output->writeln('');
             ++$counter;
         }
 

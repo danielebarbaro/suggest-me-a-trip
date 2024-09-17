@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+use App\Commands\AvailableItinerariesCommand;
 use App\Commands\AvailableTripsCommand;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Dotenv\Dotenv;
@@ -13,5 +14,6 @@ $dotenv->load(__DIR__ . '/.env');
 $app = new Application('A Basic Console', '1.0.0');
 
 $app->add(new AvailableTripsCommand());
+$app->add(new AvailableItinerariesCommand());
 
 $app->run();
