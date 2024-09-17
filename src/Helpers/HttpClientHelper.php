@@ -3,7 +3,10 @@
 namespace App\Helpers;
 
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\HttpClient\Retry\GenericRetryStrategy;
+use Symfony\Component\HttpClient\RetryableHttpClient;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
@@ -12,6 +15,8 @@ use Exception;
 
 class HttpClientHelper
 {
+    public const int DELAY_MS = 100;
+    public const int RETRIES = 3;
     private HttpClientInterface $client;
     private string $baseUrl;
     private string $lang;
@@ -23,6 +28,10 @@ class HttpClientHelper
         $this->lang = $_ENV['LANG'];
     }
 
+    /**
+     * @throws DecodingExceptionInterface
+     * @throws Exception
+     */
     public function fetchFromApi(
         string $path,
         string $requestAlias,
@@ -36,8 +45,14 @@ class HttpClientHelper
             $id,
         ], fn ($part) => !is_null($part)));
 
+        $retryClient = new RetryableHttpClient(
+            $this->client,
+            new GenericRetryStrategy([429], mt_rand(4, self::DELAY_MS)),
+            self::RETRIES
+        );
+
         try {
-            $response = $this->client->request('GET', $uri, [
+            $response = $retryClient->request('GET', $uri, [
                 'headers' => [
                     'X-Requested-Alias' => $requestAlias,
                 ],
