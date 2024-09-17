@@ -39,7 +39,6 @@ class StationService
                 'rally.startStations',
             );
             $cachedValue->set($this->enabledStationDTOs($stations));
-            $cachedValue->expiresAfter(3600);
             $this->cache->save($cachedValue);
         }
 
@@ -76,7 +75,6 @@ class StationService
             }
 
             $cachedValue->set($results);
-            $cachedValue->expiresAfter(3600);
             $this->cache->save($cachedValue);
         }
 
@@ -95,7 +93,6 @@ class StationService
                     $id
                 )
             );
-            $cachedValue->expiresAfter(3600);
             $this->cache->save($cachedValue);
         }
 

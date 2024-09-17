@@ -38,7 +38,7 @@ class AvailableTripsCommand extends Command
         $provider = new GoogleMaps(new Psr18Client(), null, $_ENV['GOOGLE_MAPS_API_KEY']);
         $geocoder = new GeoCoderService($provider);
 
-        $cache = new FilesystemAdapter();
+        $cache = new FilesystemAdapter('_smtrips', $_ENV['CACHE_TTL']);
         $client = new HttpClientHelper();
         $stationService = new StationService($geocoder, $client, $cache);
 
