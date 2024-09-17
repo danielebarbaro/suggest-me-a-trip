@@ -3,6 +3,7 @@
 namespace App\Commands;
 
 use App\Core\CacheManager;
+use App\Dto\StationDto;
 use App\Helpers\HttpClientHelper;
 use App\Services\GeoCoderService;
 use App\Services\HaversineService;
@@ -44,7 +45,7 @@ class AvailableItinerariesCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $counter = 1;
-        $steps = $input->getOption('steps') ?? 3;
+        $steps = $input->getOption('steps') ?? 2;
         $order = $input->getOption('order') ?? null;
 
         $provider = new GoogleMaps(new Psr18Client(), null, $_ENV['GOOGLE_MAPS_API_KEY']);
@@ -59,33 +60,28 @@ class AvailableItinerariesCommand extends Command
         $trips = $tripService->execute();
         $tripFinderService = new ItineraryService($trips, new HaversineService());
 
-        $results = $tripFinderService->findTripsWithMultipleSteps($steps);
+        $itineraries = $tripFinderService->findTripsWithMultipleSteps($steps, true);
 
-        if (empty($results)) {
+        if (empty($itineraries)) {
             $output->writeln("<error>No itinerary found with {$steps} steps </error>");
 
             return Command::FAILURE;
         } else {
-            $trips = $this->orderResults(
-                $tripFinderService->getTripsWithHaversineLength($results),
+            $itineraries = $this->orderResults(
+                $itineraries,
                 $order
             );
 
             $output->writeln("<info>Itineraries found with {$steps} steps </info>");
             $output->writeln('');
 
-            foreach ($trips as $distance => $trip) {
-                $highlightedStations = array_map(
-                    fn ($station) => str_contains($station->fullName, 'Italy')
-                        ? "<fg=yellow>{$station->fullName}</>"
-                        : $station->fullName,
-                    $trip
-                );
-                $stations = implode(
-                    ' -> ',
-                    $highlightedStations
-                );
-                $output->writeln("{$counter}. {$stations} - [$distance km]");
+            foreach ($itineraries as $distance => $routes) {
+                $output->writeln("\n#{$counter}. Total distance: $distance km");
+                foreach ($routes as $route) {
+                    $pickup = $this->highlightStations($route->pickupStation);
+                    $dropoff = $this->highlightStations($route->dropoffStation);
+                    $output->writeln("\t<fg=cyan>{$pickup}  -> {$dropoff}</>");
+                }
                 ++$counter;
             }
         }
@@ -107,5 +103,12 @@ class AvailableItinerariesCommand extends Command
         }
 
         return $trips;
+    }
+
+    private function highlightStations(StationDto $station, ?string $country = 'Italy'): string
+    {
+        return str_contains($station->fullName, $country)
+            ? "<fg=yellow>{$station->fullName}</>"
+            : $station->fullName;
     }
 }

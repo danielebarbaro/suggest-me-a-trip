@@ -35,14 +35,13 @@ class AvailableTripsCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $counter = 1;
+        $latestStation = null;
 
         $provider = new GoogleMaps(new Psr18Client(), null, $_ENV['GOOGLE_MAPS_API_KEY']);
-        $geocoder = new GeoCoderService($provider);
-
         $cache = new FilesystemAdapter('_smtrips', $_ENV['CACHE_TTL']);
         $client = new HttpClientHelper();
 
-        $stationService = new StationService($geocoder, $client, new CacheManager($cache));
+        $stationService = new StationService(new GeoCoderService($provider), $client, new CacheManager($cache));
 
         $tripService = new TripService($stationService, $client, $cache);
         $trips = $tripService->execute();
@@ -61,13 +60,13 @@ class AvailableTripsCommand extends Command
                 continue;
             }
 
-            $output->writeln("<fg=bright-cyan>{$counter}: {$trip->pickupStation->fullName}</>");
-            $output->writeln('<fg=bright-green>====================================</>');
-            foreach ($trip->dropoffStation as $station) {
-                $output->writeln("<fg=bright-green>{$station->fullName}</>");
+            if ($latestStation === null || $trip->pickupStation->fullName !== $latestStation) {
+                $output->writeln('');
             }
 
-            $output->writeln('');
+            $output->writeln("<fg=bright-cyan>{$counter}: {$trip->pickupStation->fullName} > {$trip->dropoffStation->fullName}</>");
+
+            $latestStation = $trip->pickupStation->fullName;
             ++$counter;
         }
 

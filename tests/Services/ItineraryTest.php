@@ -1,91 +1,65 @@
 <?php
 
-use App\Services\ItineraryService;
-use App\Services\HaversineService;
 use App\Dto\StationDto;
 use App\Dto\TripDto;
+use App\Services\HaversineService;
+use App\Services\ItineraryService;
 
 beforeEach(function () {
     $this->station1 = new StationDto('1', 'Turin', 'Turin, Italy', 'Italy', [45.0703, 7.6869]);
     $this->station2 = new StationDto('2', 'Frankfurt', 'Frankfurt, Germany', 'Germany', [50.1109, 8.6821]);
     $this->station3 = new StationDto('3', 'Bordeaux', 'Bordeaux, France', 'France', [44.8416106, -0.5810938]);
+    $this->station4 = new StationDto('4', 'Antwerp', 'Antwerp, Belgium', 'Belgium', [45.4642, 9.1900]);
 
-    $this->trip1 = new TripDto($this->station1, [$this->station2], ['Italy', 'Germany']);
-    $this->trip2 = new TripDto($this->station2, [$this->station3], ['Germany', 'France']);
+    $this->trip1 = new TripDto($this->station1, $this->station2, ['italy', 'germany'], []);
+    $this->trip2 = new TripDto($this->station2, $this->station3, ['germany', 'france'], []);
+    $this->trip3 = new TripDto($this->station3, $this->station4, ['france', 'italy'], []);
+    $this->trip4 = new TripDto($this->station4, $this->station1, ['belgium', 'france'], []);
 
-    $this->trips = [$this->trip1, $this->trip2];
+    $this->trips = [$this->trip1, $this->trip2, $this->trip3, $this->trip4];
 
-    $this->haversineService = Mockery::mock(HaversineService::class);
-    $this->service = new ItineraryService($this->trips, $this->haversineService);
+    $this->haversineServiceMock = Mockery::mock(HaversineService::class);
+    $this->itineraryService = new ItineraryService($this->trips, $this->haversineServiceMock);
 });
 
-it('finds trips with N cities and different countries', function () {
-    $result = $this->service->findTripsWithMultipleSteps(2);
-
-    expect($result)->toBeArray()
-        ->and(count($result))->toBe(2)
-        ->and($result[0])->toBeArray()
-        ->and(count($result[0]))->toBe(2);
+afterEach(function () {
+    Mockery::close();
 });
 
-it('returns dropoff stations for a given pickup station', function () {
-    $dropoffStations = $this->service->getDropoffStationsByPickup('Turin');
+it('finds trips with multiple steps', function () {
+    $routes = $this->itineraryService->findTripsWithMultipleSteps(3);
 
-    expect($dropoffStations)->toBeArray()
-        ->and($dropoffStations)->toContain($this->station2);
+    expect($routes)->toBeArray()->and($routes)->toHaveCount(4);
 });
 
-it('checks if all visited cities are in different countries', function () {
-    $visited = [$this->station1, $this->station2];
-    $result = $this->service->isDifferentDestinationCountry($visited);
+it('ensures that trips connect different countries', function () {
+    $routes = $this->itineraryService->findTripsWithMultipleSteps(2);
 
-    expect($result)->toBeTrue();
+    foreach ($routes as $index => $route) {
+        $visitedCountries = array_map(fn ($trip) => $trip->pickupStation->country, $route);
+
+        expect($visitedCountries)->toBeArray();
+
+        if ($index === 0) {
+            expect($visitedCountries)->toHaveCount(2);
+        } elseif ($index === 1) {
+            expect($visitedCountries)->toHaveCount(3);
+        }
+    }
+
+    expect($routes)->toBeArray()
+        ->and($routes)->toHaveCount(8);
 });
 
-it('returns the country for a given city name', function () {
-    $country = $this->service->getCountryByCityName('Turin, Italy');
+it('checks if trips can connect based on dropoff and pickup stations', function () {
+    $canConnect = $this->itineraryService->canConnect($this->trip1, $this->trip2, [$this->trip1], ['italy', 'germany']);
+    expect($canConnect)->toBeTrue();
 
-    expect($country)->toBe('Italy');
-});
-
-it('returns null if city coordinates are not found', function () {
-    $this->haversineService->shouldReceive('execute')->never();
-
-    // Simula una città inesistente
-    $coordinates = $this->service->getCoordinatesByCityName('NonExistentCity');
-
-    expect($coordinates)->toBeNull();
-});
-
-it('handles trips with duplicate destinations', function () {
-    $trip = new TripDto($this->station1, [$this->station2, $this->station2], ['Italy', 'Germany']);
-
-    $this->service = new ItineraryService([$trip], $this->haversineService);
-
-    $dropoffStations = $this->service->getDropoffStationsByPickup('Turin');
-
-    expect($dropoffStations)->toBeArray()
-        ->and($dropoffStations)->toHaveLength(2);
-});
-
-it('returns 0 distance if there are no cities in the trip', function () {
-    $distance = $this->service->calculateTripHaversineLength([]);
-
-    expect($distance)->toBe(0.0); // Nessuna città, quindi distanza 0
-});
-
-it('returns false if all cities are in the same country', function () {
-    $station4 = new StationDto('4', 'Milan', 'Milan, Italy', 'Italy', [1, 1]);
-
-    $visited = [$this->station1, $station4];
-    $result = $this->service->isDifferentDestinationCountry($visited);
-
-    expect($result)->toBeFalse();
-});
-
-it('returns an empty array if no dropoff stations are found', function () {
-    $dropoffStations = $this->service->getDropoffStationsByPickup('NonExistentStation');
-
-    expect($dropoffStations)->toBeArray()
-        ->and($dropoffStations)->toBeEmpty();
+    $cannotConnect = $this->itineraryService->canConnect(
+        $this->trip1,
+        $this->trip4,
+        [$this->trip1],
+        ['italy', 'france']
+    );
+    expect($cannotConnect)->toBeFalse();
 });

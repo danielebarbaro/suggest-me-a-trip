@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Core\CacheManager;
 use App\Dto\StationDto;
 use App\Helpers\HttpClientHelper;
-use Psr\Cache\InvalidArgumentException;
 
 class TimeFrameService
 {
@@ -21,10 +20,6 @@ class TimeFrameService
         $this->cacheManager = $cacheManager;
     }
 
-    /**
-     * @throws InvalidArgumentException
-     * @throws Exception
-     */
     public function execute(StationDto $pickupStation, StationDto $dropoffStation): array
     {
         $id = "{$pickupStation->id}-{$dropoffStation->id}";
