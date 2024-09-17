@@ -1,4 +1,5 @@
 <?php
+
 use App\Services\ItineraryService;
 use App\Services\HaversineService;
 use App\Dto\StationDto;
@@ -9,12 +10,10 @@ beforeEach(function () {
     $this->station2 = new StationDto('2', 'Frankfurt', 'Frankfurt, Germany', 'Germany', [50.1109, 8.6821]);
     $this->station3 = new StationDto('3', 'Bordeaux', 'Bordeaux, France', 'France', [44.8416106, -0.5810938]);
 
-
     $this->trip1 = new TripDto($this->station1, [$this->station2], ['Italy', 'Germany']);
     $this->trip2 = new TripDto($this->station2, [$this->station3], ['Germany', 'France']);
 
     $this->trips = [$this->trip1, $this->trip2];
-
 
     $this->haversineService = Mockery::mock(HaversineService::class);
     $this->service = new ItineraryService($this->trips, $this->haversineService);

@@ -11,7 +11,7 @@ it('skips stations without destinations', function () {
     $stationServiceMock = Mockery::mock(StationService::class);
 
     $stationServiceMock->shouldReceive('getRally')->andReturn([
-        1 => (object)['country' => 'Italy'],
+        1 => (object) ['country' => 'Italy'],
     ]);
 
     $stationServiceMock->shouldReceive('getDestinationsById')->with(1)->andReturn([]);

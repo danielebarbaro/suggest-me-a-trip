@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\Core\CacheManager;
 use App\Helpers\HttpClientHelper;
 use App\Services\GeoCoderService;
 use App\Services\StationService;
@@ -40,7 +41,8 @@ class AvailableTripsCommand extends Command
 
         $cache = new FilesystemAdapter('_smtrips', $_ENV['CACHE_TTL']);
         $client = new HttpClientHelper();
-        $stationService = new StationService($geocoder, $client, $cache);
+
+        $stationService = new StationService($geocoder, $client, new CacheManager($cache));
 
         $tripService = new TripService($stationService, $client, $cache);
         $trips = $tripService->execute();

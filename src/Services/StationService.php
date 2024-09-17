@@ -2,27 +2,27 @@
 
 namespace App\Services;
 
+use App\Core\CacheManager;
 use App\Dto\StationDto;
 use App\Helpers\HttpClientHelper;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Contracts\Cache\CacheInterface;
 use Exception;
 
 class StationService
 {
     private const string CACHE_KEY = 'station';
-    private CacheInterface $cache;
+    private CacheManager $cacheManager;
     private HttpClientHelper $httpClientHelper;
     private GeoCoderService $geocoder;
 
     public function __construct(
         GeoCoderService $geocoder,
         HttpClientHelper $httpClientHelper,
-        CacheInterface $cache
+        CacheManager $cacheManager
     ) {
         $this->geocoder = $geocoder;
-        $this->cache = $cache;
         $this->httpClientHelper = $httpClientHelper;
+        $this->cacheManager = $cacheManager;
     }
 
     /**
@@ -31,18 +31,17 @@ class StationService
      */
     public function getRally(): array
     {
-        $cachedValue = $this->cache->getItem(self::CACHE_KEY.'__rally');
+        return $this->cacheManager->retrieve(
+            self::CACHE_KEY.'__rally',
+            function () {
+                $stations = $this->httpClientHelper->fetchFromApi(
+                    'rally/stations',
+                    'rally.startStations'
+                );
 
-        if (!$cachedValue->isHit()) {
-            $stations = $this->httpClientHelper->fetchFromApi(
-                'rally/stations',
-                'rally.startStations',
-            );
-            $cachedValue->set($this->enabledStationDTOs($stations));
-            $this->cache->save($cachedValue);
-        }
-
-        return $cachedValue->get();
+                return $this->enabledStationDTOs($stations);
+            }
+        );
     }
 
     /**
@@ -51,52 +50,48 @@ class StationService
      */
     public function getAll(?string $lang = 'en'): array
     {
-        $cachedValue = $this->cache->getItem(self::CACHE_KEY);
-        if (!$cachedValue->isHit()) {
-            $results = [];
-            $stations = $this->httpClientHelper->fetchFromApi(
-                'translations/stations',
-                'station.fetchTranslations',
-                null,
-                true
-            );
-            foreach ($stations as $station) {
-                $countryName = $station['country_translations']['en']['name'] ?? 'No Country Name';
-                $cityName = $station['translations']['en']['name'] ?? 'No City Name';
-                $cityCountryName = $this->formattedStationName($cityName, $countryName);
-
-                $results[$station['id']] = new StationDto(
-                    $station['id'],
-                    $cityName,
-                    $cityCountryName,
-                    $countryName,
-                    $this->getCoordinates($cityCountryName)
+        return $this->cacheManager->retrieve(
+            self::CACHE_KEY,
+            function () {
+                $results = [];
+                $stations = $this->httpClientHelper->fetchFromApi(
+                    'translations/stations',
+                    'station.fetchTranslations',
+                    null,
+                    true
                 );
+
+                foreach ($stations as $station) {
+                    $countryName = $station['country_translations']['en']['name'] ?? 'No Country Name';
+                    $cityName = $station['translations']['en']['name'] ?? 'No City Name';
+                    $cityCountryName = $this->formattedStationName($cityName, $countryName);
+
+                    $results[$station['id']] = new StationDto(
+                        $station['id'],
+                        $cityName,
+                        $cityCountryName,
+                        $countryName,
+                        $this->getCoordinates($cityCountryName)
+                    );
+                }
+
+                return $results;
             }
-
-            $cachedValue->set($results);
-            $this->cache->save($cachedValue);
-        }
-
-        return $cachedValue->get();
+        );
     }
 
     public function getById(string $id, ?string $lang = 'en'): array
     {
-        $cachedValue = $this->cache->getItem(self::CACHE_KEY."__{$id}");
-
-        if (!$cachedValue->isHit()) {
-            $cachedValue->set(
-                $this->httpClientHelper->fetchFromApi(
+        return $this->cacheManager->retrieve(
+            self::CACHE_KEY."__{$id}",
+            function () use ($id) {
+                return $this->httpClientHelper->fetchFromApi(
                     'rally/stations',
                     'rally.fetchRoutes',
                     $id
-                )
-            );
-            $this->cache->save($cachedValue);
-        }
-
-        return $cachedValue->get();
+                );
+            }
+        );
     }
 
     /**
