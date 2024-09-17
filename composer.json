@@ -19,7 +19,8 @@
     "symfony/cache": "^7.1",
     "geocoder-php/google-maps-provider": "^4.7",
     "psr/http-client": "^1.0",
-    "nyholm/psr7": "^1.8"
+    "nyholm/psr7": "^1.8",
+    "nesbot/carbon": "^3.8"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3.64",

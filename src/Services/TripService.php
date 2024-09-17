@@ -42,6 +42,10 @@ class TripService
 
             foreach ($destinations as $destination) {
                 $timeframes = $timeFrameService->execute($station, $destination);
+                if (empty($timeframes)) {
+                    continue;
+                }
+
                 $tripDto = new TripDto(
                     $station,
                     $destination,

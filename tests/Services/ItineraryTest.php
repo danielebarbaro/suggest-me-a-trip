@@ -27,13 +27,13 @@ afterEach(function () {
 });
 
 it('finds trips with multiple steps', function () {
-    $routes = $this->itineraryService->findTripsWithMultipleSteps(3);
+    $routes = $this->itineraryService->findTripsWithMultipleSteps(3, false);
 
     expect($routes)->toBeArray()->and($routes)->toHaveCount(4);
 });
 
 it('ensures that trips connect different countries', function () {
-    $routes = $this->itineraryService->findTripsWithMultipleSteps(2);
+    $routes = $this->itineraryService->findTripsWithMultipleSteps(2, false);
 
     foreach ($routes as $index => $route) {
         $visitedCountries = array_map(fn ($trip) => $trip->pickupStation->country, $route);

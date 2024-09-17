@@ -45,13 +45,14 @@ php console available-itineraries [options]
 `php console available-itineraries [options]`
  - `--steps` (-s): Specify the number of steps (stations) for the itinerary. Default is 3.
  - `--order` (-o): Order the results by distance in ascending (asc) or descending (desc) order.
+ - `--check-time-frame` (-c): By default, the command will check the time frame of the trip. To disable this, use the `--check-time-frame=off` option.
 
 #### Example
 ```bash
-php console available-itineraries --steps=4 --order=asc
+php console available-itineraries --steps=2 --order=asc
 ```
 
-This will find itineraries with 4 steps (stations) and order them by distance in ascending order. If an itinerary contains "Italy", the station will be highlighted in yellow.
+This will find itineraries with 2 steps (stations) and order them by distance in ascending order. If an itinerary contains "Italy", the station will be highlighted in yellow.
 
 #### Output
 The command outputs a list of itineraries in the format:

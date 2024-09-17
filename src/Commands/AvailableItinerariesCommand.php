@@ -39,6 +39,13 @@ class AvailableItinerariesCommand extends Command
                 'Order by distance asc|desc',
                 null
             )
+            ->addOption(
+                'check-time-frame',
+                'c',
+                InputOption::VALUE_OPTIONAL,
+                'Check time frame',
+                null
+            )
             ->setHelp('This command use the trips to generate smart itinerary.');
     }
 
@@ -47,6 +54,7 @@ class AvailableItinerariesCommand extends Command
         $counter = 1;
         $steps = $input->getOption('steps') ?? 2;
         $order = $input->getOption('order') ?? null;
+        $checkTimeFrame = $input->getOption('check-time-frame') !== 'off';
 
         $provider = new GoogleMaps(new Psr18Client(), null, $_ENV['GOOGLE_MAPS_API_KEY']);
         $geocoder = new GeoCoderService($provider);
@@ -60,7 +68,7 @@ class AvailableItinerariesCommand extends Command
         $trips = $tripService->execute();
         $tripFinderService = new ItineraryService($trips, new HaversineService());
 
-        $itineraries = $tripFinderService->findTripsWithMultipleSteps($steps, true);
+        $itineraries = $tripFinderService->findTripsWithMultipleSteps($steps, $checkTimeFrame, true);
 
         if (empty($itineraries)) {
             $output->writeln("<error>No itinerary found with {$steps} steps </error>");
@@ -80,7 +88,10 @@ class AvailableItinerariesCommand extends Command
                 foreach ($routes as $route) {
                     $pickup = $this->highlightStations($route->pickupStation);
                     $dropoff = $this->highlightStations($route->dropoffStation);
-                    $output->writeln("\t<fg=cyan>{$pickup}  -> {$dropoff}</>");
+                    $output->write("\t<fg=cyan>{$pickup} -> {$dropoff}</>");
+                    $output->writeln(
+                        " | <fg=green>{$route->timeframes[0]->format('Y-m-d')} {$route->timeframes[1]->format('Y-m-d') }</>"
+                    );
                 }
                 ++$counter;
             }

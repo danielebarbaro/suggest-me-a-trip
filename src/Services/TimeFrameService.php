@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Core\CacheManager;
 use App\Dto\StationDto;
 use App\Helpers\HttpClientHelper;
+use Carbon\Carbon;
 
 class TimeFrameService
 {
@@ -27,12 +28,35 @@ class TimeFrameService
         return $this->cacheManager->retrieve(
             self::CACHE_KEY.str_replace('-', '__', $id),
             function () use ($id) {
-                return $this->httpClientHelper->fetchFromApi(
+                $results = $this->httpClientHelper->fetchFromApi(
                     'rally/timeframes',
                     'rally.timeframes',
                     $id
                 );
+
+                if (empty($results)) {
+                    return [];
+                }
+
+                return [
+                    Carbon::parse($results[0]['startDate']),
+                    Carbon::parse($results[0]['endDate']),
+                ];
             }
         );
+    }
+
+    private function getDateTimeRange($dateRanges): array
+    {
+        $carbonRanges = [];
+
+        foreach ($dateRanges as $range) {
+            $carbonRanges[] = [
+                Carbon::parse($range['startDate']),
+                Carbon::parse($range['endDate']),
+            ];
+        }
+
+        return $carbonRanges;
     }
 }
