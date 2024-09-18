@@ -89,8 +89,11 @@ class AvailableItinerariesCommand extends Command
                     $pickup = $this->highlightStations($route->pickupStation);
                     $dropoff = $this->highlightStations($route->dropoffStation);
                     $output->write("\t<fg=cyan>{$pickup} -> {$dropoff}</>");
-                    $output->writeln(
+                    $output->write(
                         " | <fg=green>{$route->timeframes[0]->format('Y-m-d')} {$route->timeframes[1]->format('Y-m-d') }</>"
+                    );
+                    $output->writeln(
+                        " | <fg=bright-white>[{$route->length} Km]</>"
                     );
                 }
                 ++$counter;
