@@ -10,18 +10,23 @@ use Library\RoadSurfer\Cache\Cache;
 use Library\RoadSurfer\HttpClient\Client;
 use Library\RoadSurfer\RoadSurfer;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
+use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Dotenv\Dotenv;
 use Symfony\Component\HttpKernel\HttpCache\Store;
 
-$cacheDir = __DIR__.'/var/cache';
 $dotenv = new Dotenv();
 $dotenv->load(__DIR__.'/.env');
 
-$app = new Application('A Basic Console', '1.0.0');
+$cacheDir = __DIR__.'/var/cache';
+
+$app = new Application('A Basic RoadSurfer Rally cli', '2.0.0');
 
 $httpStoreCache = new Store($cacheDir);
-$adapter = new FilesystemAdapter('roadsurfer', $_ENV['CACHE_TTL'],$cacheDir);
+//$adapter = new FilesystemAdapter('roadsurfer', $_ENV['CACHE_TTL'],$cacheDir);
+
+$adapter = new PhpFilesAdapter('roadsurfer', $_ENV['CACHE_TTL'], $cacheDir);
 
 $roadSurfer = new RoadSurfer(new Client($httpStoreCache), new Cache($adapter));
 $trips = (new CreateTripsService($roadSurfer))->execute();

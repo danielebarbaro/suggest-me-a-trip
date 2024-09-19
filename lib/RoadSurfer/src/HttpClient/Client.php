@@ -185,12 +185,6 @@ class Client implements ClientInterface
                 throw APIException::fromStatusCode($response->getStatusCode());
             }
 
-            if (isset($headers['X-Cache-Hit'])) {
-                dump('Cache hit');
-            } else {
-                dump('Cache miss');
-            }
-
             $data = $response->toArray();
 
             return $this->isAssoc($data) ? (object) $data : $data;

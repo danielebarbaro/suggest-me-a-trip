@@ -55,7 +55,11 @@ class AvailableItinerariesCommand extends Command
         $order = $input->getOption('order') ?? null;
         $checkTimeFrame = $input->getOption('check-time-frame') !== 'off';
 
-        $itineraries = (new CreateItinerariesService($this->trips))->execute($steps, $checkTimeFrame, true);
+        $itineraries = (new CreateItinerariesService($this->trips))->execute(
+            $steps,
+            $checkTimeFrame,
+            true
+        );
 
         if (empty($itineraries)) {
             $output->writeln("<error>No itinerary found with {$steps} steps </error>");
