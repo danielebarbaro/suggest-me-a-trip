@@ -1,19 +1,32 @@
 #!/usr/bin/env php
 <?php
 
-require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__.'/vendor/autoload.php';
 
 use App\Commands\AvailableItinerariesCommand;
 use App\Commands\AvailableTripsCommand;
+use App\Trips\Services\CreateTripsService;
+use Library\RoadSurfer\Cache\Cache;
+use Library\RoadSurfer\HttpClient\Client;
+use Library\RoadSurfer\RoadSurfer;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Dotenv\Dotenv;
+use Symfony\Component\HttpKernel\HttpCache\Store;
 
+$cacheDir = __DIR__.'/var/cache';
 $dotenv = new Dotenv();
-$dotenv->load(__DIR__ . '/.env');
+$dotenv->load(__DIR__.'/.env');
 
 $app = new Application('A Basic Console', '1.0.0');
 
-$app->add(new AvailableTripsCommand());
-$app->add(new AvailableItinerariesCommand());
+$httpStoreCache = new Store($cacheDir);
+$adapter = new FilesystemAdapter('roadsurfer', $_ENV['CACHE_TTL'],$cacheDir);
+
+$roadSurfer = new RoadSurfer(new Client($httpStoreCache), new Cache($adapter));
+$trips = (new CreateTripsService($roadSurfer))->execute();
+
+$app->add(new AvailableTripsCommand($trips));
+$app->add(new AvailableItinerariesCommand($trips));
 
 $app->run();

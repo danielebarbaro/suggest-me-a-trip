@@ -1,10 +1,10 @@
 <?php
 
-use App\Services\GeoCoderService;
-use Geocoder\StatefulGeocoder;
-use Geocoder\Provider\Provider;
-use Geocoder\Model\Coordinates;
+use App\Utils\GeoCoderService;
 use Geocoder\Model\Address;
+use Geocoder\Model\Coordinates;
+use Geocoder\Provider\Provider;
+use Geocoder\StatefulGeocoder;
 
 it('returns correct coordinates for a city', function () {
     $providerMock = Mockery::mock(Provider::class);

@@ -1,6 +1,6 @@
 <?php
 
-use App\Services\HaversineService;
+use App\Utils\HaversineService;
 
 it('calculates the correct distance between Turin and Milan', function () {
     $turin = [45.0703, 7.6869];

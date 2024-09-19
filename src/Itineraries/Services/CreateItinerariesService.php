@@ -1,40 +1,39 @@
 <?php
 
-namespace App\Services;
+namespace App\Itineraries\Services;
 
-use App\Dto\TripDto;
+use App\Itineraries\Itinerary;
+use App\Trips\Trip;
 
-class ItineraryService
+class CreateItinerariesService
 {
     public const int MIN_STEPS = 2;
-    private HaversineService $haversineService;
+
     private array $trips;
 
-    public function __construct(
-        array $trips,
-        HaversineService $haversineService,
-    ) {
-        $this->haversineService = $haversineService;
+    public function __construct(array $trips)
+    {
         $this->trips = $trips;
     }
 
-    public function findTripsWithMultipleSteps(int $steps = self::MIN_STEPS, ?bool $checkTimeFrame = true, ?bool $useLengthKeys = false): array
+    public function execute(int $steps = self::MIN_STEPS, ?bool $checkTimeFrame = true): array
     {
         $routes = [];
+        $results = [];
 
-        foreach ($this->trips as $trip) {
-            $visitedTrips = [$trip];
-            $visitedCountries = [$trip->pickupStation->country, $trip->dropoffStation->country];
-            $this->buildRoute($trip, $visitedTrips, $visitedCountries, $routes, $steps, $checkTimeFrame);
+        $routes = $this->findItineraries($routes, $steps, $checkTimeFrame);
+
+        foreach ($routes as $route) {
+            $itinerary = new Itinerary($route);
+            $key = strtr($itinerary->totalLength, '.', '_');
+            $results[$key] = $itinerary;
         }
 
-        return $useLengthKeys ?
-            $this->withLengthKeys($routes) :
-            $routes;
+        return $results;
     }
 
     public function buildRoute(
-        TripDto $currentTrip,
+        Trip $currentTrip,
         array $visitedTrips,
         array $visitedCountries,
         array &$routes,
@@ -55,8 +54,8 @@ class ItineraryService
     }
 
     public function canConnect(
-        TripDto $currentTrip,
-        TripDto $nextTrip,
+        Trip $currentTrip,
+        Trip $nextTrip,
         array $visitedTrips,
         array $visitedCountries,
         ?bool $checkTimeFrame = true
@@ -83,21 +82,18 @@ class ItineraryService
         return false;
     }
 
-    private function withLengthKeys(array $routes): array
+    public function findItineraries(array $routes, int $steps, ?bool $checkTimeFrame): array
     {
-        $trips = [];
-        foreach ($routes as $route) {
-            $totalLength = array_reduce($route, function ($carry, $trip) {
-                return $carry + $trip->length;
-            }, 0);
-
-            $trips[round($totalLength)] = $route;
+        foreach ($this->trips as $trip) {
+            $visitedTrips = [$trip];
+            $visitedCountries = [$trip->pickupStation->country, $trip->dropoffStation->country];
+            $this->buildRoute($trip, $visitedTrips, $visitedCountries, $routes, $steps, $checkTimeFrame);
         }
 
-        return $trips;
+        return $routes;
     }
 
-    private function isTimeFrameCompatible(TripDto $currentTrip, TripDto $nextTrip, int $minDaysDifference = 2): bool
+    private function isTimeFrameCompatible(Trip $currentTrip, Trip $nextTrip, int $minDaysDifference = 4): bool
     {
         $pickupStartAt = $currentTrip->timeframes[0]->clone();
         $pickupEndAt = $currentTrip->timeframes[1]->clone();

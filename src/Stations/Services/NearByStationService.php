@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace App\Stations\Services;
+
+use App\Utils\HaversineService;
 
 class NearByStationService
 {

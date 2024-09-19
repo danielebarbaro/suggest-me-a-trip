@@ -2,19 +2,21 @@
 
 namespace App\Commands;
 
-use App\Trips\Services\CreateTripsService;
-use Library\RoadSurfer\Cache\Cache;
-use Library\RoadSurfer\HttpClient\Client;
-use Library\RoadSurfer\RoadSurfer;
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\HttpKernel\HttpCache\Store;
 
 class AvailableTripsCommand extends Command
 {
+    private array $trips;
+
+    public function __construct(array $trips)
+    {
+        parent::__construct();
+        $this->trips = $trips;
+    }
+
     protected function configure(): void
     {
         $this
@@ -34,13 +36,7 @@ class AvailableTripsCommand extends Command
     {
         $counter = 1;
         $latestStation = null;
-
-        $httpStoreCache = new Store(__DIR__.'/../../var/cache');
-        $adapter = new FilesystemAdapter('trip', $_ENV['CACHE_TTL']);
-
-        $roadSurfer = new RoadSurfer(new Client($httpStoreCache), new Cache($adapter));
-
-        $trips = (new CreateTripsService($roadSurfer))->execute();
+        $trips = $this->trips;
 
         if (empty($trips)) {
             $output->writeln('<error>No trip found.</error>');

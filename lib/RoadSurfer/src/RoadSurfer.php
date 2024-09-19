@@ -83,7 +83,7 @@ class RoadSurfer
                     ];
                 }
 
-                return $results;
+                return $results[0] ?? [];
             }
         );
     }

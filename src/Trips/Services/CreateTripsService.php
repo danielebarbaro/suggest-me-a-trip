@@ -7,7 +7,6 @@ use App\Trips\Trip;
 use App\Utils\GeoCoderService;
 use App\Utils\HaversineService;
 use Geocoder\Provider\GoogleMaps\GoogleMaps;
-use Library\RoadSurfer\Exception\APIException;
 use Library\RoadSurfer\RoadSurfer;
 use Symfony\Component\HttpClient\Psr18Client;
 
@@ -78,7 +77,7 @@ class CreateTripsService
     {
         $countries = array_merge(
             [$station->city->countryName],
-            array_map(fn($destination) => $destination->city->countryName, $destinations)
+            array_map(fn ($destination) => $destination->city->countryName, $destinations)
         );
 
         return array_unique(array_map('strtolower', $countries));
@@ -111,4 +110,3 @@ class CreateTripsService
         return round($totalDistance, $roundPrecision, PHP_ROUND_HALF_UP);
     }
 }
-

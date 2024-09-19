@@ -1,7 +1,7 @@
 <?php
 
-use App\Services\NearByStationService;
-use App\Services\HaversineService;
+use App\Stations\Services\NearByStationService;
+use App\Utils\HaversineService;
 
 it('groups nearby cities based on distance', function () {
     $haversineServiceMock = Mockery::mock(HaversineService::class);
