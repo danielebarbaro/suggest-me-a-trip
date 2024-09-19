@@ -1,19 +1,19 @@
 <?php
 
-namespace App\Core;
+namespace Library\RoadSurfer\Cache;
 
-use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\CacheInterface as SymfonyCacheInterface;
 
-class CacheManager
+class Cache implements CacheInterface
 {
-    private CacheInterface $cache;
+    private SymfonyCacheInterface $cache;
 
-    public function __construct(CacheInterface $cache)
+    public function __construct(SymfonyCacheInterface $cache)
     {
         $this->cache = $cache;
     }
 
-    public function retrieve(string $cacheKey, callable $callback)
+    public function retrieve(string $cacheKey, callable $callback): mixed
     {
         $cachedValue = $this->cache->getItem($cacheKey);
 
@@ -25,7 +25,7 @@ class CacheManager
         return $cachedValue->get();
     }
 
-    public function get(string $cacheKey)
+    public function get(string $cacheKey): mixed
     {
         $cachedValue = $this->cache->getItem($cacheKey);
 

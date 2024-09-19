@@ -2,18 +2,16 @@
 
 namespace App\Commands;
 
-use App\Core\CacheManager;
-use App\Helpers\HttpClientHelper;
-use App\Services\GeoCoderService;
-use App\Services\StationService;
-use App\Services\TripService;
+use App\Trips\Services\CreateTripsService;
+use Library\RoadSurfer\Cache\Cache;
+use Library\RoadSurfer\HttpClient\Client;
+use Library\RoadSurfer\RoadSurfer;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Geocoder\Provider\GoogleMaps\GoogleMaps;
-use Symfony\Component\HttpClient\Psr18Client;
+use Symfony\Component\HttpKernel\HttpCache\Store;
 
 class AvailableTripsCommand extends Command
 {
@@ -37,14 +35,12 @@ class AvailableTripsCommand extends Command
         $counter = 1;
         $latestStation = null;
 
-        $provider = new GoogleMaps(new Psr18Client(), null, $_ENV['GOOGLE_MAPS_API_KEY']);
-        $cache = new FilesystemAdapter('_smtrips', $_ENV['CACHE_TTL']);
-        $client = new HttpClientHelper();
+        $httpStoreCache = new Store(__DIR__.'/../../var/cache');
+        $adapter = new FilesystemAdapter('trip', $_ENV['CACHE_TTL']);
 
-        $stationService = new StationService(new GeoCoderService($provider), $client, new CacheManager($cache));
+        $roadSurfer = new RoadSurfer(new Client($httpStoreCache), new Cache($adapter));
 
-        $tripService = new TripService($stationService, $client, $cache);
-        $trips = $tripService->execute();
+        $trips = (new CreateTripsService($roadSurfer))->execute();
 
         if (empty($trips)) {
             $output->writeln('<error>No trip found.</error>');

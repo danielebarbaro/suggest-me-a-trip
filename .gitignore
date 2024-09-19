@@ -4,7 +4,8 @@
 /.env.local.php
 /.env.*.local
 /public/bundles/
-/var/
+/var/cache/*
+/var/logs/*
 /vendor/
 ###< symfony/framework-bundle ###
 
@@ -17,7 +18,7 @@
 /phpunit.xml
 .phpunit.result.cache
 /build/*
-/coverage/*
+/tests/coverage/*
 ###< phpunit/phpunit ###
 
 ###> php-cs-fixer/shim ###

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Utils;
 
 use App\Exceptions\GeoCoderException;
 use Geocoder\Exception\Exception;

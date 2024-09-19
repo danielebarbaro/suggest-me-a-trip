@@ -1,17 +1,23 @@
 <?php
 
-namespace App\Dto;
+namespace App\Trips;
 
-final class TripDto
+use App\Stations\Station;
+
+class Trip
 {
-    public StationDto $pickupStation;
-    public StationDto $dropoffStation;
+    public Station $pickupStation;
+    public Station $dropoffStation;
     public array $countries;
     public array $timeframes;
     public float $length;
 
-    public function __construct(StationDto $pickupStation, StationDto $dropoffStation, array $countries, array $timeframes)
-    {
+    public function __construct(
+        Station $pickupStation,
+        Station $dropoffStation,
+        array $countries,
+        array $timeframes
+    ) {
         $this->pickupStation = $pickupStation;
         $this->dropoffStation = $dropoffStation;
         $this->countries = $countries;

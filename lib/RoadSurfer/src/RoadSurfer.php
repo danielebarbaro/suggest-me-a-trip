@@ -1,0 +1,106 @@
+<?php
+
+namespace Library\RoadSurfer;
+
+use Library\RoadSurfer\Cache\CacheInterface;
+use Library\RoadSurfer\DTO\StationDTO;
+use Library\RoadSurfer\HttpClient\Client;
+use Library\RoadSurfer\HttpClient\ClientInterface;
+
+class RoadSurfer
+{
+    private const string CACHE_PREFIX = __CLASS__;
+
+    private Client $client;
+    private CacheInterface $cache;
+
+    public function __construct(
+        ClientInterface $client,
+        CacheInterface $cache
+    ) {
+        $this->client = $client;
+        $this->cache = $cache;
+    }
+
+    public function getStations(): array
+    {
+        return $this->cache->retrieve(
+            $this->uniqueCacheKey(self::CACHE_PREFIX.'__stations'),
+            function () {
+                return $this->client->getStations();
+            }
+        );
+    }
+
+    public function getRallyStations(bool $enabled = true): array
+    {
+        return $this->cache->retrieve(
+            $this->uniqueCacheKey(self::CACHE_PREFIX.'__rally__'.$enabled ? 'enabled' : 'full'),
+            function () use ($enabled) {
+                $stations = $this->client->getRallyStations();
+
+                return array_filter(
+                    $stations,
+                    function (StationDTO $station) use ($enabled) {
+                        return !$enabled || $this->isEnabled($station);
+                    }
+                );
+            }
+        );
+    }
+
+    public function getStationById(string $id): array
+    {
+        $destinations = $this->cache->retrieve(
+            $this->uniqueCacheKey(self::CACHE_PREFIX.'__station__'.$id),
+            function () use ($id) {
+                $station = $this->client->getStationById($id);
+
+                return $station->returns ?? [];
+            }
+        );
+
+        return array_filter(
+            $this->getStations(),
+            function ($key) use ($destinations) {
+                return in_array($key, $destinations, true);
+            },
+            ARRAY_FILTER_USE_KEY
+        );
+    }
+
+    public function getStationTimeFramesByStationIds(string $resourceId): array
+    {
+        return $this->cache->retrieve(
+            $this->uniqueCacheKey(self::CACHE_PREFIX.'__timeframes__'.$resourceId),
+            function () use ($resourceId) {
+                $results = [];
+                $timeStamps = $this->client->getStationTimeFramesByStationIds($resourceId);
+                foreach ($timeStamps as $timeStamp) {
+                    $results[] = [
+                        $timeStamp->startDate,
+                        $timeStamp->endDate,
+                    ];
+                }
+
+                return $results;
+            }
+        );
+    }
+
+    private function isEnabled(StationDTO $station): bool
+    {
+        return $station->enabled && $station->isPublic && $station->oneWay;
+    }
+
+    private function uniqueCacheKey($string): string
+    {
+        return strtolower(
+            str_replace(
+                ['{', '}', '(', ')', '/', '\\', '@', ':', '-'],
+                '_',
+                $string
+            )
+        );
+    }
+}

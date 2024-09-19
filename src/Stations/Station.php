@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Dto;
+namespace App\Stations;
 
-final class StationDto
+class Station
 {
     public string $id;
     public string $name;
