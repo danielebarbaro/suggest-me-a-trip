@@ -2,7 +2,7 @@
 
 namespace App\Utils;
 
-use App\Exceptions\GeoCoderException;
+use App\Shared\Exceptions\GeoCoderException;
 use Geocoder\Exception\Exception;
 use Geocoder\Provider\Provider;
 use Geocoder\Query\GeocodeQuery;

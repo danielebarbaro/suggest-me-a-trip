@@ -2,8 +2,8 @@
 
 use App\Dto\StationDto;
 use App\Dto\TripDto;
-use App\Services\HaversineService;
 use App\Services\ItineraryService;
+use App\Utils\HaversineService;
 
 beforeEach(function () {
     $this->station1 = new StationDto('1', 'Turin', 'Turin, Italy', 'Italy', [45.0703, 7.6869]);

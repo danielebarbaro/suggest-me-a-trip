@@ -1,17 +1,16 @@
 <?php
 
 use App\Dto\StationDto;
+use App\Services\StationService;
 use App\Services\TimeFrameService;
 use App\Services\TripService;
-use App\Dto\TripDto;
-use App\Services\StationService;
-use App\Helpers\HttpClientHelper;
+use Library\RoadSurfer\src\src\HttpClient\Client;
 use Symfony\Contracts\Cache\CacheInterface;
 
 beforeEach(function () {
     $this->stationsServiceMock = Mockery::mock(StationService::class);
     $this->timeFrameServiceMock = Mockery::mock(TimeFrameService::class);
-    $this->httpClientHelperMock = Mockery::mock(HttpClientHelper::class);
+    $this->httpClientHelperMock = Mockery::mock(Client::class);
     $this->cacheMock = Mockery::mock(CacheInterface::class);
     $this->cacheMock->shouldReceive('isHit')->andReturn(false);
     $this->cacheMock->shouldReceive('set');
