@@ -2,7 +2,7 @@
 
 namespace Library\RoadSurfer\DTO;
 
-final class CountryDTO
+class CountryDTO
 {
     public int $id;
     public array $translations;

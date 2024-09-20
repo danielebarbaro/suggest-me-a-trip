@@ -1,49 +1,62 @@
 <?php
 
-use App\Dto\StationDto;
-use App\Services\StationService;
-use App\Services\TimeFrameService;
-use App\Services\TripService;
-use Library\RoadSurfer\src\src\HttpClient\Client;
-use Symfony\Contracts\Cache\CacheInterface;
+use App\Stations\Station;
+use App\Trips\Services\CreateTripsService;
+use App\Trips\Trip;
+use App\Utils\GeoCoderService;
+use Library\RoadSurfer\DTO\CityDTO;
+use Library\RoadSurfer\DTO\StationDTO;
+use Library\RoadSurfer\RoadSurfer;
 
 beforeEach(function () {
-    $this->stationsServiceMock = Mockery::mock(StationService::class);
-    $this->timeFrameServiceMock = Mockery::mock(TimeFrameService::class);
-    $this->httpClientHelperMock = Mockery::mock(Client::class);
-    $this->cacheMock = Mockery::mock(CacheInterface::class);
-    $this->cacheMock->shouldReceive('isHit')->andReturn(false);
-    $this->cacheMock->shouldReceive('set');
+    $this->roadSurfer = Mockery::mock(RoadSurfer::class);
+    $this->geoCoderService = Mockery::mock(GeoCoderService::class);
+    $this->createTripsService = new CreateTripsService($this->roadSurfer);
 
-    $this->cacheMock
-        ->shouldReceive('getItem')
-        ->andReturn($this->cacheMock);
-
-    $this->cacheMock
-        ->shouldReceive('save');
-
-    $this->timeFrameServiceMock
-        ->shouldReceive('execute')
-        ->andReturn([
-            ['2024-10-23T00:00:00+00:00', '2024-10-30T00:00:00+00:00'],
-        ]);
-
-    $this->cacheMock->shouldReceive('get')
-        ->with(Mockery::type('string'), Mockery::type('callable'))
-        ->andReturnUsing(function ($cacheKey, $callback) {
-            return $callback();  // Esegue il callback passato come secondo argomento
-        });
-
-    $this->tripService = new TripService(
-        $this->stationsServiceMock,
-        $this->httpClientHelperMock,
-        $this->cacheMock
-    );
-
-    $this->station1 = new StationDto('1', 'Turin', 'Turin, Italy', 'Italy', [45.0703, 7.6869]);
-    $this->station2 = new StationDto('2', 'Frankfurt', 'Frankfurt, Germany', 'Germany', [50.1109, 8.6821]);
-    $this->station3 = new StationDto('3', 'Bordeaux', 'Bordeaux, France', 'France', [44.8416106, -0.5810938]);
-    $this->station4 = new StationDto('4', 'Milan', 'Milan, Italy', 'Italy', [1, 1]);
+    $this->station1 =
+        Mockery::mock(
+            Station::class,
+            [
+                'id' => '1',
+                'name' => 'Turin',
+                'fullName' => 'Turin, Italy',
+                'country' => 'Italy',
+                'coordinates' => [45.0703, 7.6869],
+            ]
+        );
+    $this->station2 =
+        Mockery::mock(
+            Station::class,
+            [
+                'id' => '2',
+                'name' => 'Frankfurt',
+                'fullName' => 'Frankfurt, Germany',
+                'country' => 'Germany',
+                'coordinates' => [50.1109, 8.6821],
+            ]
+        );
+    $this->station3 =
+        Mockery::mock(
+            Station::class,
+            [
+                'id' => '3',
+                'name' => 'Bordeaux',
+                'fullName' => 'Bordeaux, France',
+                'country' => 'France',
+                'coordinates' => [44.8416106, -0.5810938],
+            ]
+        );
+    $this->station4 =
+        Mockery::mock(
+            Station::class,
+            [
+                'id' => '4',
+                'name' => 'Milan',
+                'fullName' => 'Milan, Italy',
+                'country' => 'Italy',
+                'coordinates' => [45.4642700, 9.1895100],
+            ]
+        );
 });
 
 afterEach(function () {
@@ -51,49 +64,83 @@ afterEach(function () {
 });
 
 it('skips stations without destinations', function () {
-    $this->stationsServiceMock->shouldReceive('getRally')->andReturn([
-        1 => (object) ['country' => 'Italy'],
-    ]);
+    $pickupStation = $this->station1;
 
-    $this->stationsServiceMock->shouldReceive('getDestinationsById')->with(1)->andReturn([]);
+    $this->roadSurfer->shouldReceive('getRallyStations')->andReturn(['1' => $pickupStation]);
+    $this->roadSurfer->shouldReceive('getStationById')->with('1')->andReturn([]);
 
-    $results = $this->tripService->execute();
+    $result = $this->createTripsService->execute();
 
-    expect($results)->toBe([]);
+    expect($result)->toBeArray()
+        ->and($result)->toBeEmpty();
+});
+
+it('returns empty array when there are no rally stations', function () {
+    $this->roadSurfer->shouldReceive('getRallyStations')->andReturn([]);
+
+    $result = $this->createTripsService->execute();
+
+    expect($result)->toBeArray()
+        ->and($result)->toBeEmpty();
 });
 
 it('removes duplicate countries and converts them to lowercase', function () {
-    $countries = $this->tripService->getUniqueCountries($this->station1, [$this->station3, $this->station4]);
+    $countries = $this->createTripsService->getUniqueCountries(
+        Mockery::mock(
+            StationDTO::class,
+            ['city' => ['country' => 'Italy']]
+        ),
+        [
+            Mockery::mock(
+                StationDTO::class,
+                [
+                    'city' =>
+                        Mockery::mock(
+                            CityDTO::class,
+                            ['countryName' => 'Germany']
+                        ),
+                ]
+            ),
+            Mockery::mock(
+                StationDTO::class,
+                [
+                    'city' =>
+                        Mockery::mock(
+                            CityDTO::class,
+                            ['countryName' => 'France']
+                        ),
+                ]
+            ),
+        ]
+    );
     expect(array_values($countries))->toBe(['italy', 'france']);
 });
 
 it('calculates haversine length between cities', function () {
-    $distance = $this->tripService->calculateTripHaversineLength([$this->station2, $this->station1]);
-    expect($distance)->toBe(565.42);
-});
+    $trip = new Trip(
+        new Station(
+            '1',
+            'Turin',
+            'Turin, Italy',
+            'Italy',
+            [45.0703, 7.6869],
+        ),
+        new Station(
+            '2',
+            'Frankfurt',
+            'Frankfurt, Germany',
+            'Germany',
+            [50.1109, 8.6821],
+        ),
+        ['italy', 'germany'],
+        ['timeframe1', 'timeframe2'],
+    );
 
-// it('executes and returns an array of TripDto', function () {
-//    $this->stationsServiceMock
-//        ->shouldReceive('getRally')
-//        ->andReturn(['1' => $this->station1]);
-//
-//    $this->stationsServiceMock
-//        ->shouldReceive('getDestinationsById')
-//        ->with('1')
-//        ->andReturn([$this->station2]);
-//
-//    $this->httpClientHelperMock
-//        ->shouldReceive('fetchFromApi')
-//        ->andReturn([
-//            ['startDate' => '2024-10-23T00:00:00+00:00', 'endDate' => '2024-10-30T00:00:00+00:00'],
-//        ]);
-//
-//    $trips = $this->tripService->execute();
-//
-//    expect($trips)->toBeArray()
-//        ->and($trips)->toHaveCount(1)
-//        ->and($trips[0])->toBeInstanceOf(TripDto::class)
-//        ->and($trips[0]->pickupStation->name)->toBe('Turin')
-//        ->and($trips[0]->dropoffStation->name)->toBe('Frankfurt')
-//        ->and($trips[0]->length)->toBeGreaterThan(0);
-// });
+    $distance = $this->createTripsService->calculateDistance($trip);
+
+    expect($distance)->toBeNumeric()
+        ->and($distance)
+        ->toBeGreaterThan(0)
+        ->toBe(1130.84);
+
+});

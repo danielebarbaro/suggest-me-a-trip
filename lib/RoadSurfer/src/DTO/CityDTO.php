@@ -2,7 +2,7 @@
 
 namespace Library\RoadSurfer\DTO;
 
-final class CityDTO
+class CityDTO
 {
     public int $id;
     public string $name;

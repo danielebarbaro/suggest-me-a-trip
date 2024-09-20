@@ -4,7 +4,7 @@ namespace Library\RoadSurfer\DTO;
 
 use Carbon\Carbon;
 
-final class StationDTO
+class StationDTO
 {
     public int $id;
     public CityDTO $city;

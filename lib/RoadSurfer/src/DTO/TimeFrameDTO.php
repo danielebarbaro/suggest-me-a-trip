@@ -4,7 +4,7 @@ namespace Library\RoadSurfer\DTO;
 
 use Carbon\Carbon;
 
-final class TimeFrameDTO
+class TimeFrameDTO
 {
     public Carbon $startDate;
     public Carbon $endDate;
