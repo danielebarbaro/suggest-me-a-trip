@@ -94,21 +94,19 @@ it('removes duplicate countries and converts them to lowercase', function () {
             Mockery::mock(
                 StationDTO::class,
                 [
-                    'city' =>
-                        Mockery::mock(
-                            CityDTO::class,
-                            ['countryName' => 'Germany']
-                        ),
+                    'city' => Mockery::mock(
+                        CityDTO::class,
+                        ['countryName' => 'Germany']
+                    ),
                 ]
             ),
             Mockery::mock(
                 StationDTO::class,
                 [
-                    'city' =>
-                        Mockery::mock(
-                            CityDTO::class,
-                            ['countryName' => 'France']
-                        ),
+                    'city' => Mockery::mock(
+                        CityDTO::class,
+                        ['countryName' => 'France']
+                    ),
                 ]
             ),
         ]
@@ -142,5 +140,4 @@ it('calculates haversine length between cities', function () {
         ->and($distance)
         ->toBeGreaterThan(0)
         ->toBe(1130.84);
-
 });

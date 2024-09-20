@@ -3,8 +3,8 @@
 
 require_once __DIR__.'/vendor/autoload.php';
 
-use App\Commands\AvailableItinerariesCommand;
-use App\Commands\AvailableTripsCommand;
+use App\Shared\Commands\AvailableItinerariesCommand;
+use App\Shared\Commands\AvailableTripsCommand;
 use App\Trips\Services\CreateTripsService;
 use Library\RoadSurfer\Cache\Cache;
 use Library\RoadSurfer\HttpClient\Client;

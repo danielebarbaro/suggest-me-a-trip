@@ -107,7 +107,7 @@ class CreateItinerariesService
                 $visitedTrips,
                 [
                     $trip->pickupStation->country,
-                    $trip->dropoffStation->country
+                    $trip->dropoffStation->country,
                 ],
                 $routes,
                 $options
