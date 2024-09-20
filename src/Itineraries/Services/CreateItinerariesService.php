@@ -7,8 +7,6 @@ use App\Trips\Trip;
 
 class CreateItinerariesService
 {
-    public const int MIN_STEPS = 2;
-
     private array $trips;
 
     public function __construct(array $trips)
@@ -16,12 +14,12 @@ class CreateItinerariesService
         $this->trips = $trips;
     }
 
-    public function execute(int $steps = self::MIN_STEPS, ?bool $checkTimeFrame = true): array
+    public function execute(array $options): array
     {
         $routes = [];
         $results = [];
 
-        $routes = $this->findItineraries($routes, $steps, $checkTimeFrame);
+        $routes = $this->findItineraries($routes, $options);
 
         foreach ($routes as $route) {
             $itinerary = new Itinerary($route);
@@ -37,18 +35,33 @@ class CreateItinerariesService
         array $visitedTrips,
         array $visitedCountries,
         array &$routes,
-        int $minSteps,
-        bool $checkTimeFrame = true
+        array $options,
     ): void {
-        if (count($visitedTrips) >= $minSteps) {
+        if (count($visitedTrips) <= $options['minSteps']
+            && count($visitedTrips) > 1
+        ) {
             $routes[] = $visitedTrips;
         }
 
         foreach ($this->trips as $nextTrip) {
-            if ($this->canConnect($currentTrip, $nextTrip, $visitedTrips, $visitedCountries, $checkTimeFrame)) {
+            if (
+                $this->canConnect(
+                    $currentTrip,
+                    $nextTrip,
+                    $visitedTrips,
+                    $visitedCountries,
+                    $options
+                )
+            ) {
                 $newVisitedTrips = array_merge($visitedTrips, [$nextTrip]);
                 $newVisitedCountries = array_merge($visitedCountries, [$nextTrip->dropoffStation->country]);
-                $this->buildRoute($nextTrip, $newVisitedTrips, $newVisitedCountries, $routes, $minSteps);
+                $this->buildRoute(
+                    $nextTrip,
+                    $newVisitedTrips,
+                    $newVisitedCountries,
+                    $routes,
+                    $options
+                );
             }
         }
     }
@@ -58,21 +71,24 @@ class CreateItinerariesService
         Trip $nextTrip,
         array $visitedTrips,
         array $visitedCountries,
-        ?bool $checkTimeFrame = true
+        array $options
     ): bool {
-        if ($currentTrip->dropoffStation->fullName === $nextTrip->pickupStation->fullName) {
-            if (in_array($nextTrip, $visitedTrips, true)) {
+        if ($this->areTripsConnectedByCity($currentTrip, $nextTrip)) {
+            if ($options['noSameCountry']
+                && in_array($nextTrip->dropoffStation->country, $visitedCountries)
+            ) {
                 return false;
             }
 
-            if (in_array($nextTrip->dropoffStation->country, $visitedCountries)) {
-                return false;
-            }
-
-            if ($checkTimeFrame
+            if ($options['checkTimeFrame']
                 && !empty($currentTrip->timeframes)
                 && !empty($nextTrip->timeframes)
-                && !$this->isTimeFrameCompatible($currentTrip, $nextTrip)) {
+                && $this->isTimeFrameCompatible($currentTrip, $nextTrip, $options)
+            ) {
+                return false;
+            }
+
+            if (in_array($nextTrip, $visitedTrips)) {
                 return false;
             }
 
@@ -82,26 +98,46 @@ class CreateItinerariesService
         return false;
     }
 
-    public function findItineraries(array $routes, int $steps, ?bool $checkTimeFrame): array
+    public function findItineraries(array $routes, array $options): array
     {
         foreach ($this->trips as $trip) {
             $visitedTrips = [$trip];
-            $visitedCountries = [$trip->pickupStation->country, $trip->dropoffStation->country];
-            $this->buildRoute($trip, $visitedTrips, $visitedCountries, $routes, $steps, $checkTimeFrame);
+            $this->buildRoute(
+                $trip,
+                $visitedTrips,
+                [
+                    $trip->pickupStation->country,
+                    $trip->dropoffStation->country
+                ],
+                $routes,
+                $options
+            );
         }
 
         return $routes;
     }
 
-    private function isTimeFrameCompatible(Trip $currentTrip, Trip $nextTrip, int $minDaysDifference = 4): bool
+    private function areTripsConnectedByCity(Trip $currentTrip, Trip $nextTrip): bool
     {
-        $pickupStartAt = $currentTrip->timeframes[0]->clone();
-        $pickupEndAt = $currentTrip->timeframes[1]->clone();
-        $dropoffStartAt = $nextTrip->timeframes[0]->clone();
-        $dropoffEndAt = $nextTrip->timeframes[1]->clone();
+        return $currentTrip->dropoffStation->fullName === $nextTrip->pickupStation->fullName;
+    }
 
-        if ($pickupStartAt->addDay($minDaysDifference)->lessThanOrEqualTo($dropoffEndAt)
-            && $dropoffStartAt->lessThanOrEqualTo($pickupEndAt)
+    private function isTimeFrameCompatible(Trip $currentTrip, Trip $nextTrip, array $options): bool
+    {
+        $minDaysDifferenceBetweenStartAndEnd = $options['minDaysDifferenceBetweenStartAndEnd'];
+        $pickupStartAt = $currentTrip->timeframes['startDate']->clone();
+        $pickupEndAt = $currentTrip->timeframes['endDate']->clone();
+
+        $dropoffStartAt = $nextTrip->timeframes['startDate']->clone();
+        $dropoffEndAt = $nextTrip->timeframes['endDate']->clone();
+
+        if ($pickupEndAt <= $dropoffStartAt) {
+            return true;
+        }
+
+        if (
+            $dropoffEndAt->lessThan($pickupStartAt->addDay($minDaysDifferenceBetweenStartAndEnd))
+            && $dropoffStartAt->lessThanOrEqualTo($pickupEndAt->subDay($minDaysDifferenceBetweenStartAndEnd - 2))
         ) {
             return true;
         }

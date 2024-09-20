@@ -47,7 +47,7 @@ class AvailableTripsCommand extends Command
         foreach ($trips as $trip) {
             if (!empty($input->getOption('filter-by-country')) && !in_array(
                 $input->getOption('filter-by-country'),
-                $trip['countries']
+                $trip->countries
             )) {
                 continue;
             }
@@ -56,7 +56,7 @@ class AvailableTripsCommand extends Command
                 $output->writeln('');
             }
 
-            $output->writeln("<fg=bright-cyan>{$counter}: {$trip->pickupStation->fullName} > {$trip->dropoffStation->fullName}</>");
+            $output->writeln("<fg=bright-white>{$counter}: {$trip->pickupStation->fullName} > {$trip->dropoffStation->fullName}</>");
 
             $latestStation = $trip->pickupStation->fullName;
             ++$counter;

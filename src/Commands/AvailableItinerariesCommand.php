@@ -25,11 +25,11 @@ class AvailableItinerariesCommand extends Command
             ->setName('available-itineraries')
             ->setDescription('Lists available itineraries')
             ->addOption(
-                'steps',
+                'min-steps',
                 's',
                 InputOption::VALUE_OPTIONAL,
-                'Number of steps',
-                null
+                'Minimum number of steps',
+                2
             )
             ->addOption(
                 'order',
@@ -43,7 +43,14 @@ class AvailableItinerariesCommand extends Command
                 'c',
                 InputOption::VALUE_OPTIONAL,
                 'Check time frame',
-                null
+                true
+            )
+            ->addOption(
+                'visit-country-just-once',
+                'sc',
+                InputOption::VALUE_OPTIONAL,
+                'Visit a country just once',
+                true
             )
             ->setHelp('This command use the trips to generate smart itinerary.');
     }
@@ -51,15 +58,17 @@ class AvailableItinerariesCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $counter = 1;
-        $steps = $input->getOption('steps') ?? 2;
         $order = $input->getOption('order') ?? null;
-        $checkTimeFrame = $input->getOption('check-time-frame') !== 'off';
 
-        $itineraries = (new CreateItinerariesService($this->trips))->execute(
-            $steps,
-            $checkTimeFrame,
-            true
-        );
+        $options = [
+            'noSameCountry' => $input->getOption('visit-country-just-once') !== 'off',
+            'minDaysDifferenceBetweenStartAndEnd' => 4,
+            'checkTimeFrame' => $input->getOption('check-time-frame') !== 'off',
+            'minSteps' => $input->getOption('min-steps') ?? 2,
+        ];
+
+        $itineraries = (new CreateItinerariesService($this->trips))->execute($options);
+        $steps = $options['minSteps'];
 
         if (empty($itineraries)) {
             $output->writeln("<error>No itinerary found with {$steps} steps </error>");
@@ -82,7 +91,7 @@ class AvailableItinerariesCommand extends Command
 
                     $output->write("\t<fg=cyan>{$pickup} -> {$dropoff}</>");
                     $output->write(
-                        " | <fg=green>{$trip->timeframes[0]->format('Y-m-d')} {$trip->timeframes[1]->format('Y-m-d') }</>"
+                        " | <fg=green>{$trip->timeframes['startDate']->format('Y-m-d')} {$trip->timeframes['endDate']->format('Y-m-d') }</>"
                     );
                     $output->writeln(
                         " | <fg=bright-white>[{$trip->length} Km]</>"

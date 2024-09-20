@@ -78,8 +78,8 @@ class RoadSurfer
                 $timeStamps = $this->client->getStationTimeFramesByStationIds($resourceId);
                 foreach ($timeStamps as $timeStamp) {
                     $results[] = [
-                        $timeStamp->startDate,
-                        $timeStamp->endDate,
+                        'startDate' => $timeStamp->startDate,
+                        'endDate' => $timeStamp->endDate,
                     ];
                 }
 
