@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7f575db17ae2d03e91fbadab76c5ea0b",
+    "content-hash": "1d3d08763aa2446a2c95972321736304",
     "packages": [
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -76,6 +76,62 @@
             "time": "2024-02-09T16:56:22+00:00"
         },
         {
+            "name": "geocoder-php/cache-provider",
+            "version": "4.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/geocoder-php/cache-provider.git",
+                "reference": "0b03ae7c3108c1e48d6615cc52cac3d52bcff797"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/geocoder-php/cache-provider/zipball/0b03ae7c3108c1e48d6615cc52cac3d52bcff797",
+                "reference": "0b03ae7c3108c1e48d6615cc52cac3d52bcff797",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.4 || ^8.0",
+                "psr/simple-cache": "^1.0|^2.0|^3.0",
+                "willdurand/geocoder": "^4.0.0"
+            },
+            "provide": {
+                "geocoder-php/provider-implementation": "1.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "4.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Geocoder\\Provider\\Cache\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Tobias Nyholm",
+                    "email": "tobias.nyholm@gmail.com"
+                }
+            ],
+            "description": "Cache the result of a provider",
+            "homepage": "http://geocoder-php.org/Geocoder/",
+            "support": {
+                "source": "https://github.com/geocoder-php/cache-provider/tree/4.4.0"
+            },
+            "time": "2022-07-30T12:09:30+00:00"
+        },
+        {
             "name": "geocoder-php/common-http",
             "version": "4.6.0",
             "source": {
@@ -138,21 +194,80 @@
             "time": "2023-12-28T10:51:54+00:00"
         },
         {
-            "name": "geocoder-php/google-maps-provider",
-            "version": "4.7.1",
+            "name": "geocoder-php/google-maps-places-provider",
+            "version": "1.4.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/geocoder-php/google-maps-provider.git",
-                "reference": "ee0dbc229380903043542ae2a79b4518b9f0df17"
+                "url": "https://github.com/geocoder-php/google-maps-places-provider.git",
+                "reference": "9ef702663c80c85bbb4b51bbf10566ced26ddb62"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/geocoder-php/google-maps-provider/zipball/ee0dbc229380903043542ae2a79b4518b9f0df17",
-                "reference": "ee0dbc229380903043542ae2a79b4518b9f0df17",
+                "url": "https://api.github.com/repos/geocoder-php/google-maps-places-provider/zipball/9ef702663c80c85bbb4b51bbf10566ced26ddb62",
+                "reference": "9ef702663c80c85bbb4b51bbf10566ced26ddb62",
                 "shasum": ""
             },
             "require": {
                 "geocoder-php/common-http": "^4.0",
+                "php": "^7.4 || ^8.0",
+                "willdurand/geocoder": "^4.0"
+            },
+            "provide": {
+                "geocoder-php/provider-implementation": "1.0"
+            },
+            "require-dev": {
+                "geocoder-php/provider-integration-tests": "^1.0",
+                "php-http/curl-client": "^2.2",
+                "php-http/message": "^1.0",
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Geocoder\\Provider\\GoogleMapsPlaces\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "atymic",
+                    "email": "atymicq@gmail.com"
+                }
+            ],
+            "description": "Geocoder Google Maps Places adapter",
+            "homepage": "http://geocoder-php.org/Geocoder/",
+            "support": {
+                "source": "https://github.com/geocoder-php/google-maps-places-provider/tree/1.4.1"
+            },
+            "time": "2023-07-09T14:05:05+00:00"
+        },
+        {
+            "name": "geocoder-php/nominatim-provider",
+            "version": "5.7.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/geocoder-php/nominatim-provider.git",
+                "reference": "a50486161f6babad7b1ed7ee7bf86147b0844413"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/geocoder-php/nominatim-provider/zipball/a50486161f6babad7b1ed7ee7bf86147b0844413",
+                "reference": "a50486161f6babad7b1ed7ee7bf86147b0844413",
+                "shasum": ""
+            },
+            "require": {
+                "geocoder-php/common-http": "^4.1",
                 "php": "^7.4 || ^8.0",
                 "willdurand/geocoder": "^4.0"
             },
@@ -173,7 +288,7 @@
             },
             "autoload": {
                 "psr-4": {
-                    "Geocoder\\Provider\\GoogleMaps\\": ""
+                    "Geocoder\\Provider\\Nominatim\\": ""
                 },
                 "exclude-from-classmap": [
                     "/Tests/"
@@ -189,12 +304,71 @@
                     "email": "william.durand1@gmail.com"
                 }
             ],
-            "description": "Geocoder GoogleMaps adapter",
+            "description": "Geocoder Nominatim adapter",
             "homepage": "http://geocoder-php.org/Geocoder/",
             "support": {
-                "source": "https://github.com/geocoder-php/google-maps-provider/tree/4.7.1"
+                "source": "https://github.com/geocoder-php/nominatim-provider/tree/5.7.0"
             },
-            "time": "2023-04-14T11:13:20+00:00"
+            "time": "2023-03-01T10:18:27+00:00"
+        },
+        {
+            "name": "geocoder-php/open-cage-provider",
+            "version": "4.6.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/geocoder-php/open-cage-provider.git",
+                "reference": "7fea0ceeec40ecf12d5926fc5a781f44c6b943cc"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/geocoder-php/open-cage-provider/zipball/7fea0ceeec40ecf12d5926fc5a781f44c6b943cc",
+                "reference": "7fea0ceeec40ecf12d5926fc5a781f44c6b943cc",
+                "shasum": ""
+            },
+            "require": {
+                "geocoder-php/common-http": "^4.0",
+                "php": "^7.4 || ^8.0",
+                "willdurand/geocoder": "^4.0"
+            },
+            "provide": {
+                "geocoder-php/provider-implementation": "1.0"
+            },
+            "require-dev": {
+                "geocoder-php/provider-integration-tests": "^1.2",
+                "php-http/curl-client": "^2.2",
+                "php-http/message": "^1.0",
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "4.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Geocoder\\Provider\\OpenCage\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "William Durand",
+                    "email": "william.durand1@gmail.com"
+                }
+            ],
+            "description": "Geocoder OpenCage adapter",
+            "homepage": "http://geocoder-php.org/Geocoder/",
+            "support": {
+                "source": "https://github.com/geocoder-php/open-cage-provider/tree/4.6.0"
+            },
+            "time": "2022-07-30T12:09:30+00:00"
         },
         {
             "name": "nesbot/carbon",
@@ -868,6 +1042,57 @@
                 "source": "https://github.com/php-fig/log/tree/3.0.2"
             },
             "time": "2024-09-11T13:17:53+00:00"
+        },
+        {
+            "name": "psr/simple-cache",
+            "version": "3.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/simple-cache.git",
+                "reference": "764e0b3939f5ca87cb904f570ef9be2d78a07865"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/simple-cache/zipball/764e0b3939f5ca87cb904f570ef9be2d78a07865",
+                "reference": "764e0b3939f5ca87cb904f570ef9be2d78a07865",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\SimpleCache\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "https://www.php-fig.org/"
+                }
+            ],
+            "description": "Common interfaces for simple caching",
+            "keywords": [
+                "cache",
+                "caching",
+                "psr",
+                "psr-16",
+                "simple-cache"
+            ],
+            "support": {
+                "source": "https://github.com/php-fig/simple-cache/tree/3.0.0"
+            },
+            "time": "2021-10-29T13:26:27+00:00"
         },
         {
             "name": "symfony/cache",
@@ -5197,57 +5422,6 @@
                 }
             ],
             "time": "2024-09-19T10:54:28+00:00"
-        },
-        {
-            "name": "psr/simple-cache",
-            "version": "3.0.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/php-fig/simple-cache.git",
-                "reference": "764e0b3939f5ca87cb904f570ef9be2d78a07865"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/simple-cache/zipball/764e0b3939f5ca87cb904f570ef9be2d78a07865",
-                "reference": "764e0b3939f5ca87cb904f570ef9be2d78a07865",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=8.0.0"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "3.0.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Psr\\SimpleCache\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "PHP-FIG",
-                    "homepage": "https://www.php-fig.org/"
-                }
-            ],
-            "description": "Common interfaces for simple caching",
-            "keywords": [
-                "cache",
-                "caching",
-                "psr",
-                "psr-16",
-                "simple-cache"
-            ],
-            "support": {
-                "source": "https://github.com/php-fig/simple-cache/tree/3.0.0"
-            },
-            "time": "2021-10-29T13:26:27+00:00"
         },
         {
             "name": "react/cache",

@@ -26,7 +26,7 @@ cp .env.example .env
 
 4. env
 ```bash
-GOOGLE_MAPS_API_KEY=your_api_key_here
+GEOCODE_PROVIDER_API_KEY=your_api_key_here
 ```
 
 ## Available Commands

@@ -57,12 +57,11 @@ class CreateTripsService
         return $results;
     }
 
-
     public function getUniqueCountries($station, array $destinations): array
     {
         $countries = array_merge(
             [$station->country],
-            array_map(fn($destination) => $destination->country, $destinations)
+            array_map(fn ($destination) => $destination->country, $destinations)
         );
 
         return array_unique(array_map('strtolower', $countries));
