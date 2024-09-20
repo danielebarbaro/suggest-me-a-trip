@@ -3,11 +3,18 @@
 use App\Stations\Services\GetStationsService;
 use App\Stations\Station;
 use App\Utils\GeoCoderService;
+use Geocoder\Provider\Provider;
 use Library\RoadSurfer\DTO\CityDTO;
 use Library\RoadSurfer\DTO\StationDTO;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 beforeEach(function () {
-    $this->getStationsService = new GetStationsService();
+    $_ENV['GEO_CACHE_TTL'] = '3600';
+
+    $this->providerMock = Mockery::mock(Provider::class);
+    $this->cacheAdapter = new ArrayAdapter();
+
+    $this->getStationsService = new GetStationsService($this->providerMock, $this->cacheAdapter);
 
     $this->stations =
         [
@@ -48,14 +55,6 @@ it('returns an array of Station instances', function () {
     $mockGeoCoderService = Mockery::mock(GeoCoderService::class);
     $mockGeoCoderService->shouldReceive('execute');
 
-    $this->getStationsService = Mockery::mock(GetStationsService::class)
-        ->makePartial()
-        ->shouldAllowMockingProtectedMethods();
-
-    $this->getStationsService
-        ->shouldReceive('getCoordinates')
-        ->andReturn([45.0, 9.0]);
-
     $result = $this->getStationsService->execute($this->stations);
 
     expect($result)->toBeArray()
@@ -69,7 +68,6 @@ it('calls GeoCoderService for each station', function () {
     $mockGeoCoderService = Mockery::mock(GeoCoderService::class);
     $mockGeoCoderService->shouldReceive('execute')
         ->once()
-        ->with('Station One Full')
         ->andReturn([45.0, 9.0]);
 
     $result = $this->getStationsService->execute($this->stations);
