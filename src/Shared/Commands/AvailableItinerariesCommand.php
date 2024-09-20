@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Commands;
+namespace App\Shared\Commands;
 
 use App\Itineraries\Services\CreateItinerariesService;
 use App\Stations\Station;
