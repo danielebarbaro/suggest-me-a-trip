@@ -2,6 +2,7 @@
 
 namespace App\Stations\Services;
 
+use App\Shared\Exceptions\GeoCoderException;
 use App\Stations\Station;
 use App\Utils\GeoCoderService;
 
@@ -18,8 +19,15 @@ class GetStationsService
     public function execute(array $stations): array
     {
         $results = [];
+
         foreach ($stations as $station) {
-            $coordinates = $this->geoCoderService->execute($station->fullName);
+            try {
+                $coordinates = $this->geoCoderService->execute($station->fullName);
+            } catch (GeoCoderException $e) {
+                // TODO: Log the exception
+                continue;
+            }
+
             $results[$station->id] = new Station(
                 $station->id,
                 $station->name,
