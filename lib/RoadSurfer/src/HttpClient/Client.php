@@ -32,12 +32,14 @@ class Client implements ClientInterface
     protected SymfonyClientInterface $client;
     protected SymfonyStoreInterface $storeCache;
 
-    public function __construct(SymfonyStoreInterface $storeCache)
-    {
-        $this->client = SymfonyHttpClient::create();
+    public function __construct(
+        SymfonyStoreInterface $storeCache,
+        SymfonyClientInterface $client = null
+    ) {
+        $this->storeCache = $storeCache;
+        $this->client = $client ?? SymfonyHttpClient::create();
         $this->baseUrl = $_ENV['API_BASE_URL'];
         $this->lang = $_ENV['LANG'] ?? 'en';
-        $this->storeCache = $storeCache;
     }
 
     /**
