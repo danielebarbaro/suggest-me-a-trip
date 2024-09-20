@@ -2,6 +2,7 @@
 
 namespace App\Trips\Services;
 
+use App\Stations\Services\GetStationsService;
 use App\Stations\Station;
 use App\Trips\Trip;
 use App\Utils\GeoCoderService;
@@ -22,8 +23,9 @@ class CreateTripsService
 
     public function execute(): array
     {
+        $stationService = new GetStationsService();
         $results = [];
-        $rallyStations = $this->roadSurfer->getRallyStations();
+        $rallyStations = $stationService->execute($this->roadSurfer->getRallyStations());
 
         foreach ($rallyStations as $stationId => $pickupStation) {
             $dropoffStations = $this->roadSurfer->getStationById($stationId);
@@ -31,6 +33,7 @@ class CreateTripsService
                 continue;
             }
 
+            $dropoffStations = $stationService->execute($dropoffStations);
             $countries = $this->getUniqueCountries($pickupStation, $dropoffStations);
 
             foreach ($dropoffStations as $dropoffStation) {
@@ -41,20 +44,8 @@ class CreateTripsService
                 }
 
                 $trip = new Trip(
-                    new Station(
-                        $pickupStation->id,
-                        $pickupStation->name,
-                        $pickupStation->fullName,
-                        $pickupStation->city->countryName,
-                        $this->getCoordinates($pickupStation->fullName),
-                    ),
-                    new Station(
-                        $dropoffStation->id,
-                        $dropoffStation->name,
-                        $dropoffStation->fullName,
-                        $dropoffStation->city->countryName,
-                        $this->getCoordinates($dropoffStation->fullName),
-                    ),
+                    $pickupStation,
+                    $dropoffStation,
                     $countries,
                     $timeframes
                 );
@@ -66,18 +57,12 @@ class CreateTripsService
         return $results;
     }
 
-    private function getCoordinates(string $stationName): array
-    {
-        $provider = new GoogleMaps(new Psr18Client(), null, $_ENV['GOOGLE_MAPS_API_KEY']);
-
-        return (new GeoCoderService($provider))->execute($stationName);
-    }
 
     public function getUniqueCountries($station, array $destinations): array
     {
         $countries = array_merge(
-            [$station->city->countryName],
-            array_map(fn ($destination) => $destination->city->countryName, $destinations)
+            [$station->country],
+            array_map(fn($destination) => $destination->country, $destinations)
         );
 
         return array_unique(array_map('strtolower', $countries));

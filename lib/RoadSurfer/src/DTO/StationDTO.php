@@ -46,7 +46,7 @@ class StationDTO
         $this->returns = $returns;
     }
 
-    private function fullName(): string
+    public function fullName(): string
     {
         return "{$this->city->name}, {$this->city->countryName}";
     }

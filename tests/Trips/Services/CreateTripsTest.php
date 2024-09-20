@@ -85,32 +85,20 @@ it('returns empty array when there are no rally stations', function () {
 });
 
 it('removes duplicate countries and converts them to lowercase', function () {
-    $countries = $this->createTripsService->getUniqueCountries(
-        Mockery::mock(
-            StationDTO::class,
-            ['city' => ['country' => 'Italy']]
-        ),
-        [
-            Mockery::mock(
-                StationDTO::class,
-                [
-                    'city' => Mockery::mock(
-                        CityDTO::class,
-                        ['countryName' => 'Germany']
-                    ),
-                ]
-            ),
-            Mockery::mock(
-                StationDTO::class,
-                [
-                    'city' => Mockery::mock(
-                        CityDTO::class,
-                        ['countryName' => 'France']
-                    ),
-                ]
-            ),
-        ]
-    );
+    $pickupStation = Mockery::mock(StationDTO::class, [
+        'city' => Mockery::mock(CityDTO::class, ['countryName' => 'Italy']),
+    ]);
+
+    $dropoffStation1 = Mockery::mock(StationDTO::class, [
+        'city' => Mockery::mock(CityDTO::class, ['countryName' => 'Germany']),
+    ]);
+
+    $dropoffStation2 = Mockery::mock(StationDTO::class, [
+        'city' => Mockery::mock(CityDTO::class, ['countryName' => 'France']),
+    ]);
+
+    $countries = $this->createTripsService->getUniqueCountries($pickupStation, [$dropoffStation1, $dropoffStation2]);
+
     expect(array_values($countries))->toBe(['italy', 'france']);
 });
 
