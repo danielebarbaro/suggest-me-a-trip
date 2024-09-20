@@ -5,10 +5,8 @@ use App\Stations\Station;
 use App\Utils\GeoCoderService;
 use Library\RoadSurfer\DTO\CityDTO;
 use Library\RoadSurfer\DTO\StationDTO;
-use PHPUnit\Framework\TestCase;
 
 beforeEach(function () {
-
     $this->getStationsService = new GetStationsService();
 
     $this->stations =
@@ -85,4 +83,3 @@ it('returns an empty array if no stations are passed', function () {
     expect($result)->toBeArray()
         ->and($result)->toBeEmpty();
 });
-

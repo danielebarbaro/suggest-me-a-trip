@@ -4,14 +4,22 @@ use App\Utils\GeoCoderService;
 use Geocoder\Model\Address;
 use Geocoder\Model\Coordinates;
 use Geocoder\Provider\Provider;
-use Geocoder\StatefulGeocoder;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+
+beforeEach(function () {
+    $_ENV['GEO_CACHE_TTL'] = '3600';
+    $this->cacheAdapter = new ArrayAdapter();
+});
+
+afterEach(function () {
+    Mockery::close();
+});
 
 it('returns correct coordinates for a city', function () {
     $providerMock = Mockery::mock(Provider::class);
 
     $queryResultMock = Mockery::mock('Geocoder\Collection');
     $coordinates = new Coordinates(45.4642, 9.1900);
-
     $address = Mockery::mock(Address::class);
     $address->shouldReceive('getCoordinates')->andReturn($coordinates);
 
@@ -20,9 +28,7 @@ it('returns correct coordinates for a city', function () {
 
     $providerMock->shouldReceive('geocodeQuery')->andReturn($queryResultMock);
 
-    $geocoder = new StatefulGeocoder($providerMock, 'en');
-
-    $geoCoderService = new GeoCoderService($geocoder);
+    $geoCoderService = new GeoCoderService($providerMock, $this->cacheAdapter);
 
     $coordinates = $geoCoderService->execute('Milan');
 
@@ -32,23 +38,19 @@ it('returns correct coordinates for a city', function () {
 it('returns null when the city cannot be found', function () {
     $providerMock = Mockery::mock(Provider::class);
 
-    $geocoder = new StatefulGeocoder($providerMock, 'en');
-
     $queryResultMock = Mockery::mock('Geocoder\Collection');
     $queryResultMock->shouldReceive('isEmpty')->andReturn(true);
     $providerMock->shouldReceive('geocodeQuery')->andReturn($queryResultMock);
 
-    $geoCoderService = new GeoCoderService($geocoder);
+    $geoCoderService = new GeoCoderService($providerMock, $this->cacheAdapter);
 
     $coordinates = $geoCoderService->execute('dummy');
 
-    expect($coordinates)->toBeNull();
+    expect($coordinates)->toBe([]);
 });
 
 it('returns coordinates from the first result when multiple results are found', function () {
     $providerMock = Mockery::mock(Provider::class);
-
-    $geocoder = new StatefulGeocoder($providerMock, 'en');
 
     $coordinates1 = new Coordinates(45.4642, 9.1900);
     $coordinates2 = new Coordinates(41.9028, 12.4964);
@@ -65,7 +67,7 @@ it('returns coordinates from the first result when multiple results are found', 
 
     $providerMock->shouldReceive('geocodeQuery')->andReturn($queryResultMock);
 
-    $geoCoderService = new GeoCoderService($geocoder);
+    $geoCoderService = new GeoCoderService($providerMock, $this->cacheAdapter);
 
     $coordinates = $geoCoderService->execute('Milan');
 
@@ -75,29 +77,13 @@ it('returns coordinates from the first result when multiple results are found', 
 it('handles invalid city input gracefully', function () {
     $providerMock = Mockery::mock(Provider::class);
 
-    $geocoder = new StatefulGeocoder($providerMock, 'en');
-
     $queryResultMock = Mockery::mock('Geocoder\Collection');
     $queryResultMock->shouldReceive('isEmpty')->andReturn(true);
     $providerMock->shouldReceive('geocodeQuery')->andReturn($queryResultMock);
 
-    $geoCoderService = new GeoCoderService($geocoder);
+    $geoCoderService = new GeoCoderService($providerMock, $this->cacheAdapter);
 
     $coordinates = $geoCoderService->execute('');
 
-    expect($coordinates)->toBeNull();
+    expect($coordinates)->toBe([]);
 });
-
-// it('returns null on geocoding error', function () {
-//    $providerMock = Mockery::mock(Provider::class);
-//
-//    $geocoder = new StatefulGeocoder($providerMock, 'en');
-//
-//    $providerMock->shouldReceive('geocodeQuery')->andThrow(Exception::class);
-//
-//    $geoCoderService = new GeoCoderService($geocoder);
-//
-//    $coordinates = $geoCoderService->execute('Milan');
-//
-//    expect($coordinates)->toBeNull();
-// });

@@ -26,14 +26,14 @@ class GeoCoderService
 
     public function execute(string $city): ?array
     {
-        $cachedProvider = new ProviderCache(
-            $this->provider,
-            new Psr16Cache($this->cacheAdapter),
-            $_ENV['GEO_CACHE_TTL']
-        );
-
-        $geocoder = new StatefulGeocoder($cachedProvider, 'en');
         try {
+            $cachedProvider = new ProviderCache(
+                $this->provider,
+                new Psr16Cache($this->cacheAdapter),
+                $_ENV['GEO_CACHE_TTL']
+            );
+
+            $geocoder = new StatefulGeocoder($cachedProvider, 'en');
             $result = $geocoder->geocodeQuery(GeocodeQuery::create($city));
         } catch (Exception|GeoCoderException $e) {
             // TODO: Log the exception
