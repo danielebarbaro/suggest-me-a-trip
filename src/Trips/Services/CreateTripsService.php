@@ -4,30 +4,26 @@ namespace App\Trips\Services;
 
 use App\Stations\Services\GetStationsService;
 use App\Trips\Trip;
+use App\Utils\GeoCoderService;
 use App\Utils\HaversineService;
-use Geocoder\Provider\Provider;
 use Library\RoadSurfer\RoadSurfer;
-use Psr\Cache\CacheItemPoolInterface;
 
 class CreateTripsService
 {
     private RoadSurfer $roadSurfer;
-    private Provider $provider;
-    private CacheItemPoolInterface $cacheAdapter;
+    private GeoCoderService $geoCoderService;
 
     public function __construct(
         RoadSurfer $roadSurfer,
-        Provider $provider,
-        CacheItemPoolInterface $cacheAdapter,
+        GeoCoderService $geoCoderService
     ) {
         $this->roadSurfer = $roadSurfer;
-        $this->provider = $provider;
-        $this->cacheAdapter = $cacheAdapter;
+        $this->geoCoderService = $geoCoderService;
     }
 
     public function execute(): array
     {
-        $stationService = new GetStationsService($this->provider, $this->cacheAdapter);
+        $stationService = new GetStationsService($this->geoCoderService);
         $results = [];
         $rallyStations = $stationService->execute($this->roadSurfer->getRallyStations());
 

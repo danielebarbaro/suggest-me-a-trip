@@ -2,39 +2,24 @@
 
 namespace App\Stations\Services;
 
-use App\Shared\Exceptions\GeoCoderException;
 use App\Stations\Station;
 use App\Utils\GeoCoderService;
-use Geocoder\Provider\Provider;
-use Psr\Cache\CacheItemPoolInterface;
 
 class GetStationsService
 {
     private GeoCoderService $geoCoderService;
-    private Provider $provider;
-    private CacheItemPoolInterface $cacheAdapter;
 
     public function __construct(
-        Provider $provider,
-        CacheItemPoolInterface $cacheAdapter,
+        GeoCoderService $geoCoderService
     ) {
-        $this->provider = $provider;
-        $this->cacheAdapter = $cacheAdapter;
+        $this->geoCoderService = $geoCoderService;
     }
 
     public function execute(array $stations): array
     {
         $results = [];
-        $geoCoderService = new GeoCoderService($this->provider, $this->cacheAdapter);
-
         foreach ($stations as $station) {
-            try {
-                $coordinates = $geoCoderService->execute($station->fullName);
-            } catch (GeoCoderException $e) {
-                // TODO: Log the exception
-                continue;
-            }
-
+            $coordinates = $this->geoCoderService->execute($station->fullName);
             $results[$station->id] = new Station(
                 $station->id,
                 $station->name,
