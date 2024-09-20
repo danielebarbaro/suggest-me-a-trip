@@ -83,6 +83,10 @@ class RoadSurfer
                     ];
                 }
 
+                if (empty($results)) {
+                    return [];
+                }
+
                 return $results[0] ?? [];
             }
         );

@@ -1,26 +1,20 @@
 <?php
 
+use App\Stations\Services\GetStationsService;
 use App\Stations\Station;
 use App\Trips\Services\CreateTripsService;
 use App\Trips\Trip;
-use App\Utils\GeoCoderService;
-use Geocoder\Provider\Provider;
-use Library\RoadSurfer\DTO\CityDTO;
-use Library\RoadSurfer\DTO\StationDTO;
 use Library\RoadSurfer\RoadSurfer;
-use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 beforeEach(function () {
     $_ENV['GEO_CACHE_TTL'] = '3600';
 
     $this->roadSurfer = Mockery::mock(RoadSurfer::class);
-    $this->geoCoderService = Mockery::mock(GeoCoderService::class);
-    $this->providerMock = Mockery::mock(Provider::class);
-    $this->cacheAdapter = new ArrayAdapter();
+    $this->stationService = Mockery::mock(GetStationsService::class);
+
     $this->createTripsService = new CreateTripsService(
         $this->roadSurfer,
-        $this->providerMock,
-        $this->cacheAdapter
+        $this->stationService,
     );
 
     $this->station1 = new Station(
@@ -51,6 +45,12 @@ beforeEach(function () {
         'Italy',
         [45.4642700, 9.1895100],
     );
+
+    $this->stationService->shouldReceive('execute')->andReturn([
+        $this->station1,
+        $this->station2,
+        $this->station4,
+    ]);
 });
 
 afterEach(function () {
@@ -58,10 +58,15 @@ afterEach(function () {
 });
 
 it('skips stations without destinations', function () {
-    $pickupStation = $this->station1;
-
-    $this->roadSurfer->shouldReceive('getRallyStations')->andReturn(['1' => $pickupStation]);
-    $this->roadSurfer->shouldReceive('getStationById')->with('1')->andReturn([]);
+    $this->roadSurfer->shouldReceive('getRallyStations')
+        ->andReturn(['1' => $this->station1]);
+    $this->roadSurfer->shouldReceive('getStationById')
+        ->andReturn([]);
+    $this->roadSurfer->shouldReceive('getStationTimeFramesByStationIds')
+        ->andReturn([
+            'startDate' => '2021-01-01',
+            'endDate' => '2021-01-02',
+        ]);
 
     $result = $this->createTripsService->execute();
 
@@ -71,7 +76,13 @@ it('skips stations without destinations', function () {
 
 it('returns empty array when there are no rally stations', function () {
     $this->roadSurfer->shouldReceive('getRallyStations')->andReturn([]);
-
+    $this->roadSurfer->shouldReceive('getStationById')
+        ->andReturn([
+            $this->station2,
+            $this->station3,
+        ]);
+    $this->roadSurfer->shouldReceive('getStationTimeFramesByStationIds')
+        ->andReturn([]);
     $result = $this->createTripsService->execute();
 
     expect($result)->toBeArray()

@@ -5,22 +5,19 @@ require_once __DIR__.'/vendor/autoload.php';
 
 use App\Shared\Commands\AvailableItinerariesCommand;
 use App\Shared\Commands\AvailableTripsCommand;
+use App\Stations\Services\GetStationsService;
 use App\Trips\Services\CreateTripsService;
 use App\Utils\GeoCoderService;
-use Geocoder\Provider\Cache\ProviderCache;
-use Geocoder\Provider\Nominatim\Nominatim;
 use Geocoder\Provider\OpenCage\OpenCage;
 use Library\RoadSurfer\Cache\Cache;
 use Library\RoadSurfer\HttpClient\Client;
 use Library\RoadSurfer\RoadSurfer;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
-use Symfony\Component\Cache\Psr16Cache;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Dotenv\Dotenv;
 use Symfony\Component\HttpClient\Psr18Client;
 use Symfony\Component\HttpKernel\HttpCache\Store;
-use Symfony\Contracts\Cache\CacheInterface as SymfonyCache;
 
 $dotenv = new Dotenv();
 $dotenv->load(__DIR__.'/.env');
@@ -31,13 +28,14 @@ $app = new Application('A Basic RoadSurfer Rally cli', '2.1.0');
 
 $httpStoreCache = new Store($cacheDir);
 $geocoderProvider = new OpenCage(new Psr18Client(), $_ENV['GEOCODE_PROVIDER_API_KEY']);
-$geocoderCacheAdapter = new FilesystemAdapter('__geocoder', $_ENV['GEO_CACHE_TTL'], $cacheDir);
+$geocoderCacheAdapter = new FilesystemAdapter('_O__geocoder', $_ENV['GEO_CACHE_TTL'], $cacheDir);
 $geoCoderService = new GeoCoderService($geocoderProvider, $geocoderCacheAdapter);
 
-$generalCacheAdapter = new PhpFilesAdapter('__roadsurfer', $_ENV['CACHE_TTL'], $cacheDir);
+$generalCacheAdapter = new PhpFilesAdapter('_O__roadsurfer', $_ENV['CACHE_TTL'], $cacheDir);
 $roadSurfer = new RoadSurfer(new Client($httpStoreCache), new Cache($generalCacheAdapter));
 
-$tripService = new CreateTripsService($roadSurfer, $geoCoderService);
+$stationService = new GetStationsService($geoCoderService);
+$tripService = new CreateTripsService($roadSurfer, $stationService);
 $trips = $tripService->execute();
 
 $app->add(new AvailableTripsCommand($trips));

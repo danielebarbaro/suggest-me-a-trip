@@ -4,28 +4,26 @@ namespace App\Trips\Services;
 
 use App\Stations\Services\GetStationsService;
 use App\Trips\Trip;
-use App\Utils\GeoCoderService;
 use App\Utils\HaversineService;
 use Library\RoadSurfer\RoadSurfer;
 
 class CreateTripsService
 {
     private RoadSurfer $roadSurfer;
-    private GeoCoderService $geoCoderService;
+    private GetStationsService $stationService;
 
     public function __construct(
         RoadSurfer $roadSurfer,
-        GeoCoderService $geoCoderService
+        GetStationsService $stationService
     ) {
         $this->roadSurfer = $roadSurfer;
-        $this->geoCoderService = $geoCoderService;
+        $this->stationService = $stationService;
     }
 
     public function execute(): array
     {
-        $stationService = new GetStationsService($this->geoCoderService);
         $results = [];
-        $rallyStations = $stationService->execute($this->roadSurfer->getRallyStations());
+        $rallyStations = $this->stationService->execute($this->roadSurfer->getRallyStations());
 
         foreach ($rallyStations as $stationId => $pickupStation) {
             $dropoffStations = $this->roadSurfer->getStationById($stationId);
@@ -33,7 +31,7 @@ class CreateTripsService
                 continue;
             }
 
-            $dropoffStations = $stationService->execute($dropoffStations);
+            $dropoffStations = $this->stationService->execute($dropoffStations);
             $countries = $this->getUniqueCountries($pickupStation, $dropoffStations);
 
             foreach ($dropoffStations as $dropoffStation) {
