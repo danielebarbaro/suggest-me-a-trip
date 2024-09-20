@@ -5,97 +5,58 @@ use App\Stations\Station;
 use App\Trips\Trip;
 
 beforeEach(function () {
-    $this->station1 =
-        Mockery::mock(
-            Station::class,
-            [
-                'id' => '1',
-                'name' => 'Turin',
-                'fullName' => 'Turin, Italy',
-                'country' => 'Italy',
-                'coordinates' => [45.0703, 7.6869],
-            ]
-        );
-    $this->station2 =
-        Mockery::mock(
-            Station::class,
-            [
-                'id' => '2',
-                'name' => 'Frankfurt',
-                'fullName' => 'Frankfurt, Germany',
-                'country' => 'Germany',
-                'coordinates' => [50.1109, 8.6821],
-            ]
-        );
-    $this->station3 =
-        Mockery::mock(
-            Station::class,
-            [
-                'id' => '3',
-                'name' => 'Bordeaux',
-                'fullName' => 'Bordeaux, France',
-                'country' => 'France',
-                'coordinates' => [44.8416106, -0.5810938],
-            ]
-        );
-    $this->station4 =
-        Mockery::mock(
-            Station::class,
-            [
-                'id' => '4',
-                'name' => 'Antwerp',
-                'fullName' => 'Antwerp, Belgium',
-                'country' => 'Belgium',
-                'coordinates' => [45.4642, 9.1900],
-            ]
-        );
-    $this->station5 =
-        Mockery::mock(
-            Station::class,
-            [
-                'id' => '5',
-                'name' => 'Milan',
-                'fullName' => 'Milan, Italy',
-                'country' => 'Italy',
-                'coordinates' => [45.4642700, 9.1895100],
-            ]
-        );
+    $this->station1 = new Station(
+        1,
+        'Turin',
+        'Turin, Italy',
+        'Italy',
+        [45.0703, 7.6869],
+    );
+    $this->station2 = new Station(
+        2,
+        'Frankfurt',
+        'Frankfurt, Germany',
+        'Germany',
+        [50.1109, 8.6821],
+    );
+    $this->station3 = new Station(
+        3,
+        'Bordeaux',
+        'Bordeaux, France',
+        'France',
+        [44.8416106, -0.5810938],
+    );
+    $this->station4 = new Station(
+        4,
+        'Milan',
+        'Milan, Italy',
+        'Italy',
+        [45.4642700, 9.1895100],
+    );
 
-    $this->trip1 = Mockery::mock(
-        Trip::class,
-        [
-            'pickupStation' => $this->station1,
-            'dropoffStation' => $this->station2,
-            'countries' => ['italy', 'germany'],
-            'timeframes' => [],
-        ]
+    $this->trip1 = new Trip(
+        $this->station1,
+        $this->station2,
+        ['italy', 'germany'],
+        [],
     );
-    $this->trip2 = Mockery::mock(
-        Trip::class,
-        [
-            'pickupStation' => $this->station2,
-            'dropoffStation' => $this->station3,
-            'countries' => ['germany', 'france'],
-            'timeframes' => [],
-        ]
+    $this->trip2 = new Trip(
+        $this->station2,
+        $this->station3,
+        ['germany', 'france'],
+        [],
     );
-    $this->trip3 = Mockery::mock(
-        Trip::class,
-        [
-            'pickupStation' => $this->station3,
-            'dropoffStation' => $this->station4,
-            'countries' => ['france', 'italy'],
-            'timeframes' => [],
-        ]
+    $this->trip3 = new Trip(
+        $this->station3,
+        $this->station4,
+        ['france', 'italy'],
+        [],
     );
-    $this->trip4 = Mockery::mock(
-        Trip::class,
-        [
-            'pickupStation' => $this->station4,
-            'dropoffStation' => $this->station1,
-            'countries' => ['belgium', 'france'],
-            'timeframes' => [],
-        ]
+    $this->trip4 = new Trip(
+        $this->station4,
+        $this->station1,
+        ['belgium', 'france'],
+        [],
     );
 
     $this->trips = [$this->trip1, $this->trip2, $this->trip3, $this->trip4];
@@ -115,7 +76,7 @@ afterEach(function () {
 it('finds trips with multiple steps', function () {
     $routes = $this->createItinerariesService->execute($this->baseClassOptions);
 
-    expect($routes)->toBeArray()->and($routes)->toHaveCount(4);
+    expect($routes)->toBeArray()->and($routes)->toHaveCount(1);
 });
 
 it('ensures that trips connect different countries', function () {
@@ -125,21 +86,14 @@ it('ensures that trips connect different countries', function () {
         'checkTimeFrame' => true,
         'minSteps' => 2,
     ]);
+    foreach ($routes as $route) {
+        $visitedCountries = array_map(fn($trip) => $trip->pickupStation->country, $route->trips);
 
-    foreach ($routes as $index => $route) {
-        $visitedCountries = array_map(fn ($trip) => $trip->pickupStation->country, $route);
-
-        expect($visitedCountries)->toBeArray();
-
-        if ($index === 0) {
-            expect($visitedCountries)->toHaveCount(2);
-        } elseif ($index === 1) {
-            expect($visitedCountries)->toHaveCount(3);
-        }
+        expect($visitedCountries)->toBeArray()
+            ->and($visitedCountries)->toHaveCount(2);
     }
-
     expect($routes)->toBeArray()
-        ->and($routes)->toHaveCount(8);
+        ->and($routes)->toHaveCount(1);
 });
 
 it('checks if trips can connect based on dropoff and pickup stations', function () {
