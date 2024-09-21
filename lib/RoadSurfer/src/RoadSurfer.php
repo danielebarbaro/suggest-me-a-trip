@@ -11,7 +11,7 @@ class RoadSurfer
 {
     private const string CACHE_PREFIX = __CLASS__;
 
-    private Client $client;
+    private ClientInterface $client;
     private CacheInterface $cache;
 
     public function __construct(
@@ -28,6 +28,16 @@ class RoadSurfer
             $this->uniqueCacheKey(self::CACHE_PREFIX.'__stations'),
             function () {
                 return $this->client->getStations();
+            }
+        );
+    }
+
+    public function getStationById(string $id): StationDTO
+    {
+        return $this->cache->retrieve(
+            $this->uniqueCacheKey(self::CACHE_PREFIX.'__station__'.$id),
+            function () use ($id) {
+                return $this->client->getStationById($id);
             }
         );
     }
@@ -49,16 +59,15 @@ class RoadSurfer
         );
     }
 
-    public function getStationById(string $id): array
+    public function getReturnStationsByStationId(string $id): array
     {
-        $destinations = $this->cache->retrieve(
-            $this->uniqueCacheKey(self::CACHE_PREFIX.'__station__'.$id),
-            function () use ($id) {
-                $station = $this->client->getStationById($id);
+        $station = $this->getStationById($id);
 
-                return $station->returns ?? [];
-            }
-        );
+        $destinations = $station?->returns;
+
+        if (empty($destinations)) {
+            return [];
+        }
 
         return array_filter(
             $this->getStations(),

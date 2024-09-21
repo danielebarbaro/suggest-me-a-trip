@@ -26,7 +26,7 @@ class CreateTripsService
         $rallyStations = $this->stationService->execute($this->roadSurfer->getRallyStations());
 
         foreach ($rallyStations as $stationId => $pickupStation) {
-            $dropoffStations = $this->roadSurfer->getStationById($stationId);
+            $dropoffStations = $this->roadSurfer->getReturnStationsByStationId($stationId);
             if (empty($dropoffStations)) {
                 continue;
             }

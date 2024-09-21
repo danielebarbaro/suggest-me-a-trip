@@ -60,7 +60,7 @@ afterEach(function () {
 it('skips stations without destinations', function () {
     $this->roadSurfer->shouldReceive('getRallyStations')
         ->andReturn(['1' => $this->station1]);
-    $this->roadSurfer->shouldReceive('getStationById')
+    $this->roadSurfer->shouldReceive('getReturnStationsByStationId')
         ->andReturn([]);
     $this->roadSurfer->shouldReceive('getStationTimeFramesByStationIds')
         ->andReturn([
@@ -76,7 +76,7 @@ it('skips stations without destinations', function () {
 
 it('returns empty array when there are no rally stations', function () {
     $this->roadSurfer->shouldReceive('getRallyStations')->andReturn([]);
-    $this->roadSurfer->shouldReceive('getStationById')
+    $this->roadSurfer->shouldReceive('getReturnStationsByStationId')
         ->andReturn([
             $this->station2,
             $this->station3,
