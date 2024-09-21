@@ -1,19 +1,44 @@
 #!/usr/bin/env php
 <?php
 
-require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__.'/vendor/autoload.php';
 
-use App\Commands\AvailableItinerariesCommand;
-use App\Commands\AvailableTripsCommand;
+use App\Shared\Commands\AvailableItinerariesCommand;
+use App\Shared\Commands\AvailableTripsCommand;
+use App\Stations\Services\GetStationsService;
+use App\Trips\Services\CreateTripsService;
+use App\Utils\GeoCoderService;
+use Geocoder\Provider\OpenCage\OpenCage;
+use Library\RoadSurfer\Cache\Cache;
+use Library\RoadSurfer\HttpClient\Client;
+use Library\RoadSurfer\RoadSurfer;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Dotenv\Dotenv;
+use Symfony\Component\HttpClient\Psr18Client;
+use Symfony\Component\HttpKernel\HttpCache\Store;
 
 $dotenv = new Dotenv();
-$dotenv->load(__DIR__ . '/.env');
+$dotenv->load(__DIR__.'/.env');
 
-$app = new Application('A Basic Console', '1.0.0');
+$cacheDir = __DIR__.'/var/cache';
 
-$app->add(new AvailableTripsCommand());
-$app->add(new AvailableItinerariesCommand());
+$app = new Application('A Basic RoadSurfer Rally cli', '2.1.0');
+
+$httpStoreCache = new Store($cacheDir);
+$geocoderProvider = new OpenCage(new Psr18Client(), $_ENV['GEOCODE_PROVIDER_API_KEY']);
+$geocoderCacheAdapter = new FilesystemAdapter('_geocoder_', $_ENV['GEO_CACHE_TTL'], $cacheDir);
+$geoCoderService = new GeoCoderService($geocoderProvider, $geocoderCacheAdapter);
+
+$generalCacheAdapter = new PhpFilesAdapter('_roadsurfer_', $_ENV['CACHE_TTL'], $cacheDir);
+$roadSurfer = new RoadSurfer(new Client($httpStoreCache), new Cache($generalCacheAdapter));
+
+$stationService = new GetStationsService($geoCoderService);
+$tripService = new CreateTripsService($roadSurfer, $stationService);
+$trips = $tripService->execute();
+
+$app->add(new AvailableTripsCommand($trips));
+$app->add(new AvailableItinerariesCommand($trips));
 
 $app->run();

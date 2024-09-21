@@ -26,7 +26,7 @@ cp .env.example .env
 
 4. env
 ```bash
-GOOGLE_MAPS_API_KEY=your_api_key_here
+GEOCODE_PROVIDER_API_KEY=your_api_key_here
 ```
 
 ## Available Commands
@@ -43,9 +43,11 @@ php console available-itineraries [options]
 #### Options
 
 `php console available-itineraries [options]`
- - `--steps` (-s): Specify the number of steps (stations) for the itinerary. Default is 3.
+ - `--min-steps` (-s): Specify the minimum number of steps (stations) for the itinerary. Default is 3.
  - `--order` (-o): Order the results by distance in ascending (asc) or descending (desc) order.
  - `--check-time-frame` (-c): By default, the command will check the time frame of the trip. To disable this, use the `--check-time-frame=off` option.
+ - `--visit-country-just-once` (-sc): By default, the command will **allow the same country** to be visited more than once. 
+To disable this, and visit just one country for each itinerary use the `--visit-country-just-once=off` option.
 
 #### Example
 ```bash
@@ -58,8 +60,11 @@ This will find itineraries with 2 steps (stations) and order them by distance in
 The command outputs a list of itineraries in the format:
 
 ```bash
-1. Station1 -> Station2 -> Station3 - [distance in km]
-2. Station4 -> Station5 -> Station6 - [distance in km]
+#10. Total distance: 1237 km
+	Graz, Austria -> Munich, Germany | 2024-10-22 2024-10-29 | [625.79 Km]
+	Munich, Germany -> Venice, Italy | 2024-10-19 2024-10-26 | [611.45 Km]
+
+...	
 ```
 
 If no itineraries are found, it displays an error message.
@@ -87,8 +92,9 @@ This will display only the trips that involve destinations in Germany.
 The command outputs each trip's starting station and its drop-off stations, highlighting the country of origin.
 
 ```bash
-1: Pickup Station1
-====================================
-Dropoff Station1
-Dropoff Station2
+1: Aartselaar, Belgium > Frankfurt, Germany
+2: Aartselaar, Belgium > Leipzig, Germany
+3: Aartselaar, Belgium > Marburg, Germany
+4: Aartselaar, Belgium > Mainz, Germany
+...
 ```
