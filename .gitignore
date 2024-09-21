@@ -3,16 +3,13 @@
 /var/cache/*
 /var/logs/*
 /vendor/
-.coverage/*
-coverage/*
-build
 composer.lock
 
 ###> phpunit/phpunit ###
 /phpunit.xml
 .phpunit.result.cache
 /build/*
-/tests/coverage/*
+/.coverage/*
 ###< phpunit/phpunit ###
 
 ###> php-cs-fixer/shim ###
