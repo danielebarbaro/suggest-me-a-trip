@@ -11,12 +11,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class AvailableItinerariesCommand extends Command
 {
-    public array $trips;
+    private CreateItinerariesService $createItinerariesService;
 
-    public function __construct(array $trips)
+    public function __construct(CreateItinerariesService $createItinerariesService)
     {
         parent::__construct();
-        $this->trips = $trips;
+        $this->createItinerariesService = $createItinerariesService;
     }
 
     protected function configure(): void
@@ -67,7 +67,7 @@ class AvailableItinerariesCommand extends Command
             'minSteps' => $input->getOption('min-steps') ?? 2,
         ];
 
-        $itineraries = (new CreateItinerariesService($this->trips))->execute($options);
+        $itineraries = $this->createItinerariesService->execute($options);
         $steps = $options['minSteps'];
 
         if (empty($itineraries)) {

@@ -3,6 +3,7 @@
 
 require_once __DIR__.'/vendor/autoload.php';
 
+use App\Itineraries\Services\CreateItinerariesService;
 use App\Shared\Commands\AvailableItinerariesCommand;
 use App\Shared\Commands\AvailableTripsCommand;
 use App\Stations\Services\GetStationsService;
@@ -37,8 +38,9 @@ $roadSurfer = new RoadSurfer(new Client($httpStoreCache), new Cache($generalCach
 $stationService = new GetStationsService($geoCoderService);
 $tripService = new CreateTripsService($roadSurfer, $stationService);
 $trips = $tripService->execute();
+$itineraries = new CreateItinerariesService($trips);
 
 $app->add(new AvailableTripsCommand($trips));
-$app->add(new AvailableItinerariesCommand($trips));
+$app->add(new AvailableItinerariesCommand($itineraries));
 
 $app->run();
