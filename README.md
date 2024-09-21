@@ -66,6 +66,9 @@ The command outputs a list of itineraries in the format:
 
 ...	
 ```
+#### Example
+
+![](/result.png)
 
 If no itineraries are found, it displays an error message.
 
