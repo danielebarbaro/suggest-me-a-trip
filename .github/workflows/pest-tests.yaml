@@ -20,8 +20,13 @@ jobs:
               uses: shivammathur/setup-php@v2
               with:
                   php-version: ${{ matrix.php-version }}
-                  extensions: dom, curl, libxml, mbstring, zip, pcntl, intl, exif, iconv, fileinfo, xdebug
+                  tools: composer:v2
                   coverage: xdebug
+    
+            -   name: Setup problem matchers
+                run: |
+                    echo "::add-matcher::${{ runner.tool_cache }}/php.json"
+                    echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
             - name: Install Composer dependencies
               run: composer install --prefer-dist --no-progress --no-suggest --no-interaction --optimize-autoloader

@@ -1,11 +1,12 @@
 /.env.local
-/.env.local.php
 /.env.*.local
-/public/bundles/
 /var/cache/*
 /var/logs/*
 /vendor/
 .coverage/*
+coverage/*
+build
+composer.lock
 
 ###> phpunit/phpunit ###
 /phpunit.xml
