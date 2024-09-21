@@ -6,6 +6,8 @@
             "email": "barbarodaniele@gmail.com"
         }
     ],
+    "description": "A simple CLI application based on RoadSurfer Rally page built with Symfony Console",
+    "license": "MIT",
     "autoload": {
         "psr-4": {
             "App\\": "src/",
