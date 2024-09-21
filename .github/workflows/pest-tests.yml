@@ -37,4 +37,4 @@ jobs:
               run: composer show -D
 
             - name: Run Pest tests
-              run: vendor/bin/pest --ci --colors=always -c phpunit.xml -vvv --do-not-cache-result
+              run: vendor/bin/pest --ci --colors=always --do-not-cache-result
