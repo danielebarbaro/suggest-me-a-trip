@@ -48,8 +48,8 @@
     },
     "scripts": {
         "test": "php vendor/bin/pest",
-        "test-coverage": "php vendor/bin/pest  --coverage-html=.coverage",
-        "test-lib": "php vendor/bin/pest --test-directory=lib/RoadSurfer/tests",
+        "test-coverage": "php vendor/bin/pest --coverage-html=.coverage",
+        "test-lib": "php vendor/bin/pest lib/RoadSurfer/tests",
         "cs": "php vendor/bin/php-cs-fixer fix",
         "cs-check": "php vendor/bin/php-cs-fixer fix --dry-run"
     }
