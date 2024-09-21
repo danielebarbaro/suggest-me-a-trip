@@ -1,12 +1,7 @@
 name: Run Pest tests
-on:
-    push:
-        branches:
-            - '*'
-    pull_request:
-        branches:
-            - main
-            - develop
+
+on: ['push', 'pull_request']
+
 jobs:
     pest-tests:
         runs-on: ubuntu-latest
@@ -21,25 +16,15 @@ jobs:
             - name: Validate composer.json and composer.lock
               run: composer validate --strict
 
-            - name: Cache Composer packages
-              id: composer-cache
-              uses: actions/cache@v3
-              with:
-                  path: vendor
-                  key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-                  restore-keys: |
-                      ${{ runner.os }}-php-
-
-
             - name: Set up PHP
               uses: shivammathur/setup-php@v2
               with:
                   php-version: ${{ matrix.php-version }}
                   extensions: dom, curl, libxml, mbstring, zip, pcntl, intl, exif, iconv, fileinfo, xdebug
-                  coverage: none
+                  coverage: xdebug
 
             - name: Install Composer dependencies
-              run: composer install --prefer-dist --no-progress --no-suggest --no-interaction
+              run: composer install --prefer-dist --no-progress --no-suggest --no-interaction --optimize-autoloader
 
             - name: Run Pest tests
-              run: ./vendor/bin/pest
+              run: ./vendor/bin/pest --ci
