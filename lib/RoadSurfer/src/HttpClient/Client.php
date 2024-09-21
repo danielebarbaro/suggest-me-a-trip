@@ -34,7 +34,7 @@ class Client implements ClientInterface
 
     public function __construct(
         SymfonyStoreInterface $storeCache,
-        SymfonyClientInterface $client = null
+        ?SymfonyClientInterface $client = null
     ) {
         $this->storeCache = $storeCache;
         $this->client = $client ?? SymfonyHttpClient::create();

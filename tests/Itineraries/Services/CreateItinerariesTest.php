@@ -87,7 +87,7 @@ it('ensures that trips connect different countries', function () {
         'minSteps' => 2,
     ]);
     foreach ($routes as $route) {
-        $visitedCountries = array_map(fn($trip) => $trip->pickupStation->country, $route->trips);
+        $visitedCountries = array_map(fn ($trip) => $trip->pickupStation->country, $route->trips);
 
         expect($visitedCountries)->toBeArray()
             ->and($visitedCountries)->toHaveCount(2);

@@ -4,7 +4,6 @@ namespace Library\RoadSurfer;
 
 use Library\RoadSurfer\Cache\CacheInterface;
 use Library\RoadSurfer\DTO\StationDTO;
-use Library\RoadSurfer\HttpClient\Client;
 use Library\RoadSurfer\HttpClient\ClientInterface;
 
 class RoadSurfer
