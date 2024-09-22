@@ -30,6 +30,9 @@ The application processes trips between multiple cities, calculates distances, a
     * [php-fpm](#php-fpm)
     * [Extensions](#extensions)
     * [JetBrains IDEs](#jetbrains-ides)
+  * [Quality Assurance](#quality-assurance)
+    * [Composer command](#composer-command)
+    * [git pre-push hook](#git-pre-push-hook)
 
 ## Features
  - **Available Itineraries**: Generate and list smart itineraries with customizable steps (number of stations) and sort them by distance.
@@ -196,3 +199,38 @@ In **PhpStorm** settings:
 * _PHP > Composer_: Update the Composer executable using `<REPOSITORY_FOLDER_PATH>/.devbox/nix/profile/default/bin/composer`;
 
 ! _Replace `<REPOSITORY_FOLDER_PATH>` with the absolute path of your local repository folder._
+
+### Quality Assurance
+
+#### Composer command
+
+```bash
+composer quality-assurance
+```
+
+#### git pre-push hook
+
+In order to run the integrity checks before pushing to the repository, you need to set up a `pre-push` git hook.
+
+Create a `pre-push` file on `.git/hooks/` folder:
+```bash
+touch .git/hooks/pre-push
+```
+
+Add this content to the `.git/hooks/pre-push` file:
+```
+#!/bin/bash
+
+# Navigate to the root directory of the repository
+cd "$(git rev-parse --show-toplevel)"
+
+# Run quality assurance
+composer quality-assurance
+```
+
+Give the right permissions to the `.git/hooks/pre-push` file:
+```bash
+chmod +x .git/hooks/pre-push
+```
+
+If you need to push in any case, use the `--no-verify` flag (i.e. `git push --no-verify`).
