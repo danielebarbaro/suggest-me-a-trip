@@ -5,7 +5,6 @@
 /var/cache/*
 /var/logs/*
 /vendor/
-composer.lock
 
 ###> phpunit/phpunit ###
 /phpunit.xml
