@@ -1,7 +1,38 @@
+[![Built with Devbox](https://www.jetify.com/img/devbox/shield_moon.svg)](https://www.jetify.com/devbox/docs/contributor-quickstart/)
+
 # Suggest a trip to me
 This project is a command-line application built with Symfony's console component. 
 It allows users to manage and generate smart itineraries and available trips based on geographical data retrieved via the Google Maps API. 
 The application processes trips between multiple cities, calculates distances, and allows users to filter or sort the results in various ways.
+
+### Table of contents
+* [Features](#features)
+* [Installation](#installation)
+* [Available Commands](#available-commands)
+  * [Usage](#usage)
+    * [Options](#options)
+    * [Example](#example)
+    * [Output](#output)
+    * [Example](#example-1)
+  * [Usage](#usage-1)
+    * [Options](#options-1)
+    * [Example](#example-2)
+    * [Output](#output-1)
+* [Development](#development)
+  * [Requirements](#requirements)
+    * [devbox](#devbox)
+    * [direnv](#direnv)
+  * [Getting started](#getting-started)
+    * [devbox](#devbox-1)
+    * [direnv](#direnv-1)
+  * [PHP](#php)
+    * [php.ini](#phpini)
+    * [php-fpm](#php-fpm)
+    * [Extensions](#extensions)
+    * [JetBrains IDEs](#jetbrains-ides)
+  * [Quality Assurance](#quality-assurance)
+    * [Composer command](#composer-command)
+    * [git pre-push hook](#git-pre-push-hook)
 
 ## Features
  - **Available Itineraries**: Generate and list smart itineraries with customizable steps (number of stations) and sort them by distance.
@@ -101,3 +132,105 @@ The command outputs each trip's starting station and its drop-off stations, high
 4: Aartselaar, Belgium > Mainz, Germany
 ...
 ```
+
+## Development
+
+### Requirements
+
+This project uses [devbox](https://www.jetify.com/devbox/docs/) and [direnv](https://direnv.net/) to manage its development environment.
+
+#### devbox
+This project uses **devbox** to creates an isolated, reproducible environment with a defined list of required packages installed (details in the `devbox.json` file).
+
+Install **devbox** following the instructions [here](https://www.jetify.com/devbox/docs/installing_devbox/).
+
+#### direnv
+Having to manually type `devbox shell` isn’t a huge burden but making **devbox** totally automatic with **direnv** is a convenience.
+
+The installation of **direnv** has two parts:
+1. Install the [package](https://direnv.net/docs/installation.html#from-system-packages) or [binary](https://direnv.net/docs/installation.html#from-binary-builds)
+1. [Hook](https://direnv.net/docs/hook.html) into your shell
+
+### Getting started
+
+#### devbox
+
+Installs all packages mentioned in the `devbox.json` file:
+```bash
+devbox install
+```
+
+#### direnv
+
+Create the `.envrc` file and add the missing values:
+```bash
+cp .envrc.sample .envrc
+```
+
+Allow **direnv** to work in the project folder:
+```bash
+direnv allow
+```
+
+### PHP
+To show more information you can run:
+```bash
+devbox info php
+```
+
+#### php.ini
+Use the `devbox.d/php/php.ini` file for PHP configurations.
+
+#### php-fpm
+
+Use `devbox services start|stop php-fpm` to interact with php-fpm service.
+Use the `devbox.d/php/php-fpm.conf` file to configure php-fpm service.
+See the `.devbox/virtenv/php/php-fpm.log` file for the php-fpm service logs.
+
+#### Extensions
+PHP is compiled with default extensions.
+If you would like to use non-default extensions you can add them with devbox add php81Extensions.{extension}.
+For example, for the memcache extension you can do `devbox add php81Extensions.memcached`.
+
+#### JetBrains IDEs
+
+In **PhpStorm** settings:
+* _PHP_: Add a new CLI Interpreter using `<REPOSITORY_FOLDER_PATH>/.devbox/nix/profile/default/bin/php`;
+* _PHP > Composer_: Update the Composer executable using `<REPOSITORY_FOLDER_PATH>/.devbox/nix/profile/default/bin/composer`;
+
+! _Replace `<REPOSITORY_FOLDER_PATH>` with the absolute path of your local repository folder._
+
+### Quality Assurance
+
+#### Composer command
+
+```bash
+composer quality-assurance
+```
+
+#### git pre-push hook
+
+In order to run the integrity checks before pushing to the repository, you need to set up a `pre-push` git hook.
+
+Create a `pre-push` file on `.git/hooks/` folder:
+```bash
+touch .git/hooks/pre-push
+```
+
+Add this content to the `.git/hooks/pre-push` file:
+```
+#!/bin/bash
+
+# Navigate to the root directory of the repository
+cd "$(git rev-parse --show-toplevel)"
+
+# Run quality assurance
+composer quality-assurance
+```
+
+Give the right permissions to the `.git/hooks/pre-push` file:
+```bash
+chmod +x .git/hooks/pre-push
+```
+
+If you need to push in any case, use the `--no-verify` flag (i.e. `git push --no-verify`).

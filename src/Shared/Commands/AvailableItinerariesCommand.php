@@ -83,7 +83,7 @@ class AvailableItinerariesCommand extends Command
             $output->writeln("<info>Itineraries found with {$steps} steps </info>");
 
             foreach ($itineraries as $key => $itinerary) {
-                list($distance,) = explode('_', $key);
+                list($distance) = explode('_', $key);
                 $output->writeln("\n#{$counter}. Total distance: $distance km");
                 foreach ($itinerary->trips as $trip) {
                     $pickup = $this->highlightStations($trip->pickupStation);

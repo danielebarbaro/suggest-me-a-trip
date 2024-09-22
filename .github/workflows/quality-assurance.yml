@@ -1,0 +1,25 @@
+name: Quality Assurance
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  quality-assurance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Devbox
+        uses: jetify-com/devbox-install-action@v0.11.0
+        with:
+          enable-cache: 'true'
+
+      - name: List Dependencies
+        run: devbox run -- composer show -D
+
+      - name: Quality Assurance
+        run: devbox run -- composer quality-assurance

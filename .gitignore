@@ -1,9 +1,10 @@
+/.envrc
+/.env
 /.env.local
 /.env.*.local
 /var/cache/*
 /var/logs/*
 /vendor/
-composer.lock
 
 ###> phpunit/phpunit ###
 /phpunit.xml

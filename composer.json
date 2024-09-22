@@ -51,6 +51,15 @@
         "test-coverage": "php vendor/bin/pest --coverage-html=.coverage",
         "test-lib": "php vendor/bin/pest lib/RoadSurfer/tests",
         "cs": "php vendor/bin/php-cs-fixer fix",
-        "cs-check": "php vendor/bin/php-cs-fixer fix --dry-run"
+        "cs-check": "php vendor/bin/php-cs-fixer fix --dry-run",
+        "quality-assurance": [
+            "composer validate --strict",
+            "@cs-check",
+            "@test",
+            "@test-lib"
+        ]
+    },
+    "scripts-aliases": {
+        "quality-assurance": ["qa"]
     }
 }
