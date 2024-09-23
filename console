@@ -11,14 +11,20 @@ use App\Trips\Services\CreateTripsService;
 use App\Utils\GeoCoderService;
 use Geocoder\Provider\OpenCage\OpenCage;
 use Library\RoadSurfer\Cache\Cache;
+use Library\RoadSurfer\HttpClient\CachingDecorator;
 use Library\RoadSurfer\HttpClient\Client;
+use Library\RoadSurfer\HttpClient\RetryDecorator;
 use Library\RoadSurfer\RoadSurfer;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Cache\Adapter\PhpFilesAdapter;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Dotenv\Dotenv;
+use Symfony\Component\HttpClient\CachingHttpClient;
 use Symfony\Component\HttpClient\Psr18Client;
+use Symfony\Component\HttpClient\Retry\GenericRetryStrategy;
+use Symfony\Component\HttpClient\RetryableHttpClient;
 use Symfony\Component\HttpKernel\HttpCache\Store;
+use Symfony\Component\HttpClient\HttpClient as SymfonyHttpClient;
 
 $dotenv = new Dotenv();
 $dotenv->load(__DIR__.'/.env');
@@ -33,7 +39,28 @@ $geocoderCacheAdapter = new FilesystemAdapter('_geocoder_', $_ENV['GEO_CACHE_TTL
 $geoCoderService = new GeoCoderService($geocoderProvider, $geocoderCacheAdapter);
 
 $generalCacheAdapter = new PhpFilesAdapter('_roadsurfer_', $_ENV['CACHE_TTL'], $cacheDir);
-$roadSurfer = new RoadSurfer(new Client($httpStoreCache), new Cache($generalCacheAdapter));
+$symfonyClient = SymfonyHttpClient::create();
+
+$retryableHttpClient = new RetryableHttpClient(
+    $symfonyClient,
+    new GenericRetryStrategy([429], mt_rand(4, 100)),
+    5
+);
+
+$domainClient = new Client($retryableHttpClient, $_ENV['API_BASE_URL'], $_ENV['LANG']);
+
+$cachingHttpClient = new CachingHttpClient(
+    $retryableHttpClient,
+    new Store($cacheDir),
+    [
+        'default_ttl' => $_ENV['cache_ttl']
+    ]
+);
+
+$retryDecorator = new RetryDecorator($domainClient, $retryableHttpClient);
+$cachingDecorator = new CachingDecorator($retryDecorator, $cachingHttpClient);
+
+$roadSurfer = new RoadSurfer($cachingDecorator, new Cache($generalCacheAdapter));
 
 $stationService = new GetStationsService($geoCoderService);
 $tripService = new CreateTripsService($roadSurfer, $stationService);
