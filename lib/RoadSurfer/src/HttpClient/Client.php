@@ -8,11 +8,6 @@ use Library\RoadSurfer\DTO\CityDTO;
 use Library\RoadSurfer\DTO\StationDTO;
 use Library\RoadSurfer\DTO\TimeFrameDTO;
 use Library\RoadSurfer\Exception\APIException;
-use Symfony\Component\HttpClient\CachingHttpClient;
-use Symfony\Component\HttpClient\HttpClient as SymfonyHttpClient;
-use Symfony\Component\HttpClient\Retry\GenericRetryStrategy;
-use Symfony\Component\HttpClient\RetryableHttpClient;
-use Symfony\Component\HttpKernel\HttpCache\StoreInterface as SymfonyStoreInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
@@ -22,24 +17,19 @@ use Symfony\Contracts\HttpClient\HttpClientInterface as SymfonyClientInterface;
 
 class Client implements ClientInterface
 {
-    private const int DELAY_MS = 100;
-    private const int CACHE_TTL = 3600;
-    private const int RETRIES = 5;
-
     protected string $baseUrl;
     protected string $lang;
 
     protected SymfonyClientInterface $client;
-    protected SymfonyStoreInterface $storeCache;
 
     public function __construct(
-        SymfonyStoreInterface $storeCache,
-        ?SymfonyClientInterface $client = null
+        SymfonyClientInterface $client,
+        string $baseUrl,
+        string $lang
     ) {
-        $this->storeCache = $storeCache;
-        $this->client = $client ?? SymfonyHttpClient::create();
-        $this->baseUrl = $_ENV['API_BASE_URL'];
-        $this->lang = $_ENV['LANG'] ?? 'en';
+        $this->client = $client;
+        $this->baseUrl = $baseUrl;
+        $this->lang = $lang;
     }
 
     /**
@@ -170,16 +160,11 @@ class Client implements ClientInterface
         $uri = $this->buildUri($resourcePath, $resourceId, $ignoreLanguage);
 
         dump($uri);
+
         try {
-            $response = (new CachingHttpClient(
-                $this->createRetryClient(),
-                $this->storeCache,
-            ))->request('GET', $uri, [
+            $response = $this->client->request('GET', $uri, [
                 'headers' => [
                     'X-Requested-Alias' => $operationType,
-                ],
-                'extra' => [
-                    'cache_ttl' => self::CACHE_TTL,
                 ],
             ]);
 
@@ -210,15 +195,6 @@ class Client implements ClientInterface
             $resourcePath,
             $resourceId,
         ], fn ($part) => !is_null($part)));
-    }
-
-    private function createRetryClient(): RetryableHttpClient
-    {
-        return new RetryableHttpClient(
-            $this->client,
-            new GenericRetryStrategy([429], mt_rand(4, self::DELAY_MS)),
-            self::RETRIES
-        );
     }
 
     private function isAssoc(array $array): bool
