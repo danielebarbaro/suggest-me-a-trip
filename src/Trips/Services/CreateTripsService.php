@@ -3,6 +3,7 @@
 namespace App\Trips\Services;
 
 use App\Stations\Services\GetStationsService;
+use App\Stations\Station;
 use App\Trips\Trip;
 use App\Utils\HaversineService;
 use Library\RoadSurfer\RoadSurfer;
@@ -55,7 +56,7 @@ class CreateTripsService
         return $results;
     }
 
-    public function getUniqueCountries($station, array $destinations): array
+    public function getUniqueCountries(Station $station, array $destinations): array
     {
         $countries = array_merge(
             [$station->country],
@@ -71,7 +72,7 @@ class CreateTripsService
         $totalDistance = array_reduce(
             [$trip->pickupStation->id, $trip->dropoffStation->id],
             function ($totalDistance, $index) use ($trip, $haversineService) {
-                if ($index === 1) {
+                if ($index === '1') {
                     return $totalDistance;
                 }
 

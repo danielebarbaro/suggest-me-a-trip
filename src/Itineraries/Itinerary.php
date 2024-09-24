@@ -18,6 +18,6 @@ class Itinerary
     {
         return array_reduce($trips, function ($carry, $trip) {
             return $carry + $trip->length;
-        }, 0) ?? 0.0;
+        }, 0.0);
     }
 }
