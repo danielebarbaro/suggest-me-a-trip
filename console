@@ -53,7 +53,7 @@ $cachingHttpClient = new CachingHttpClient(
     $retryableHttpClient,
     new Store($cacheDir),
     [
-        'default_ttl' => $_ENV['cache_ttl']
+        'default_ttl' => $_ENV['CACHE_TTL']
     ]
 );
 

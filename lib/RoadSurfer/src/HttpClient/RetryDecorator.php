@@ -16,8 +16,12 @@ class RetryDecorator extends ClientDecorator
 
     public function fetch(string $resourcePath, string $operationType, ?string $resourceId = null, ?bool $ignoreLanguage = false): array|object
     {
-        return $this->retryClient->request('GET', $resourcePath, [
+        $uri = $this->client->buildUri($resourcePath, $resourceId, $ignoreLanguage);
+
+        $response = $this->retryClient->request('GET', $uri, [
             'headers' => ['X-Requested-Alias' => $operationType],
         ]);
+
+        return $this->client->parseResponse($response);
     }
 }

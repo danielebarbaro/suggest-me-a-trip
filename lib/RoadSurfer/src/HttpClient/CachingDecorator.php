@@ -18,9 +18,13 @@ class CachingDecorator extends ClientDecorator
 
     public function fetch(string $resourcePath, string $operationType, ?string $resourceId = null, ?bool $ignoreLanguage = false): array|object
     {
-        return $this->cachingClient->request('GET', $resourcePath, [
+        $uri = $this->client->buildUri($resourcePath, $resourceId, $ignoreLanguage);
+
+        $response = $this->cachingClient->request('GET', $uri, [
             'headers' => ['X-Requested-Alias' => $operationType],
             'extra' => ['cache_ttl' => $this->ttl],
         ]);
+
+        return $this->client->parseResponse($response);
     }
 }

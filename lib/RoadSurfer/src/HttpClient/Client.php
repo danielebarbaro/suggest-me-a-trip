@@ -14,6 +14,7 @@ use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface as SymfonyClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class Client implements ClientInterface
 {
@@ -28,7 +29,7 @@ class Client implements ClientInterface
         string $lang
     ) {
         $this->client = $client;
-        $this->baseUrl = $baseUrl;
+        $this->baseUrl = rtrim($baseUrl, '/');
         $this->lang = $lang;
     }
 
@@ -159,7 +160,7 @@ class Client implements ClientInterface
     ): array|object {
         $uri = $this->buildUri($resourcePath, $resourceId, $ignoreLanguage);
 
-        dump($uri);
+        //         dump($uri);
 
         try {
             $response = $this->client->request('GET', $uri, [
@@ -172,9 +173,7 @@ class Client implements ClientInterface
                 throw APIException::fromStatusCode($response->getStatusCode());
             }
 
-            $data = $response->toArray();
-
-            return $this->isAssoc($data) ? (object) $data : $data;
+            return $this->parseResponse($response);
         } catch (TransportExceptionInterface|ClientExceptionInterface|RedirectionExceptionInterface|ServerExceptionInterface $e) {
             throw APIException::fromMessage($e->getMessage());
         } catch (DecodingExceptionInterface $e) {
@@ -184,7 +183,7 @@ class Client implements ClientInterface
         }
     }
 
-    private function buildUri(
+    public function buildUri(
         string $resourcePath,
         ?string $resourceId,
         ?bool $ignoreLanguage
@@ -197,8 +196,12 @@ class Client implements ClientInterface
         ], fn ($part) => !is_null($part)));
     }
 
-    private function isAssoc(array $array): bool
+    public function parseResponse(ResponseInterface $response): object|array
     {
-        return array_keys($array) !== range(0, count($array) - 1);
+        $data = $response->toArray();
+
+        $isAssoc = array_keys($data) !== range(0, count($data) - 1);
+
+        return $isAssoc ? (object) $data : $data;
     }
 }
