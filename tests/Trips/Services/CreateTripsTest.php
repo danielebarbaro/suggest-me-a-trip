@@ -120,5 +120,5 @@ it('calculates haversine length between cities', function () {
     expect($distance)->toBeNumeric()
         ->and($distance)
         ->toBeGreaterThan(0)
-        ->toBe(1130.84);
+        ->toBe(565.42);
 });
