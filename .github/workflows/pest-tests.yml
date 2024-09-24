@@ -22,8 +22,9 @@ jobs:
               uses: shivammathur/setup-php@v2
               with:
                 php-version: ${{ matrix.php-version }}
-                extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, fileinfo
+                extensions: swoole, dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, fileinfo
                 coverage: none
+                tools: composer:v2
     
             - name: Setup problem matchers
               run: |
@@ -35,6 +36,19 @@ jobs:
 
             - name: List Installed Dependencies
               run: composer show -D
+    
+            - name: Start Swoole server
+              run: php lib/RoadSurfer/tests/swoole-test-server.php &
+              continue-on-error: true
+              timeout-minutes: 1
+
+            - name: Wait for Swoole to be ready
+              run: |
+                timeout 10s bash -c 'until echo > /dev/tcp/127.0.0.1/9501; do sleep 1; done'
 
             - name: Run Pest tests
               run: vendor/bin/pest --ci --colors=always --do-not-cache-result
+     
+            - name: Stop Swoole server
+              run: |
+                pkill -f lib/RoadSurfer/tests/swoole-test-server.php
