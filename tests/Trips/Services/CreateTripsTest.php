@@ -148,5 +148,5 @@ it('builds trips and returns an array of trips', function () {
         ->and($trip->timeframes)->toBe([
             'startDate' => '2021-01-01',
             'endDate' => '2021-01-02',
-        ] );
+        ]);
 });
