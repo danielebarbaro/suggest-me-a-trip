@@ -3,6 +3,7 @@
 use App\Itineraries\Services\CreateItinerariesService;
 use App\Stations\Station;
 use App\Trips\Trip;
+use Carbon\Carbon;
 
 beforeEach(function () {
     $this->station1 = new Station(
@@ -114,4 +115,42 @@ it('checks if trips can connect based on dropoff and pickup stations', function 
         $this->baseClassOptions
     );
     expect($cannotConnect)->toBeFalse();
+});
+
+it('returns true when timeframes are compatible', function () {
+    $currentTrip = Mockery::mock(Trip::class);
+    $nextTrip = Mockery::mock(Trip::class);
+
+    $currentTrip->timeframes = [
+        'startDate' => Carbon::now()->subDays(5),
+        'endDate' => Carbon::now(),
+    ];
+
+    $nextTrip->timeframes = [
+        'startDate' => Carbon::now()->addDays(1),
+        'endDate' => Carbon::now()->addDays(5),
+    ];
+
+    $reflection = new ReflectionMethod(CreateItinerariesService::class, 'isTimeFrameCompatible');
+
+    expect($reflection->invoke($this->createItinerariesService, $currentTrip, $nextTrip, $this->baseClassOptions))->toBeTrue();
+});
+
+it('returns false when timeframes are not compatible', function () {
+    $currentTrip = Mockery::mock(Trip::class);
+    $nextTrip = Mockery::mock(Trip::class);
+
+    $currentTrip->timeframes = [
+        'startDate' => Carbon::now()->subDays(5),
+        'endDate' => Carbon::now()->subDays(1),
+    ];
+
+    $nextTrip->timeframes = [
+        'startDate' => Carbon::now()->subDays(2),
+        'endDate' => Carbon::now()->addDays(2),
+    ];
+
+    $reflection = new ReflectionMethod(CreateItinerariesService::class, 'isTimeFrameCompatible');
+
+    expect($reflection->invoke($this->createItinerariesService, $currentTrip, $nextTrip, $this->baseClassOptions))->toBeFalse();
 });

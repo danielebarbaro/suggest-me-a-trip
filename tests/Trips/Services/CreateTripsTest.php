@@ -122,3 +122,31 @@ it('calculates haversine length between cities', function () {
         ->toBeGreaterThan(0)
         ->toBe(565.42);
 });
+
+it('builds trips and returns an array of trips', function () {
+    $this->roadSurfer->shouldReceive('getRallyStations')->andReturn([
+        '1' => $this->station1,
+        '3' => $this->station3,
+    ]);
+    $this->roadSurfer->shouldReceive('getReturnStationsByStationId')
+        ->andReturn([
+            $this->station1,
+        ]);
+    $this->roadSurfer->shouldReceive('getStationTimeFramesByStationIds')
+        ->andReturn([
+            'startDate' => '2021-01-01',
+            'endDate' => '2021-01-02',
+        ]);
+
+    $results = $this->createTripsService->execute();
+
+    $trip = $results[0];
+    expect($trip)->toBeInstanceOf(Trip::class)
+        ->and($trip->pickupStation->id)->toBe('1')
+        ->and($trip->dropoffStation->id)->toBe('1')
+        ->and(array_values($trip->countries))->toBe(['italy', 'germany'])
+        ->and($trip->timeframes)->toBe([
+            'startDate' => '2021-01-01',
+            'endDate' => '2021-01-02',
+        ] );
+});

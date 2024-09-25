@@ -16,6 +16,7 @@
     },
     "autoload-dev": {
         "psr-4": {
+            "Tests\\": "tests/",
             "Library\\RoadSurfer\\Tests\\": "lib/RoadSurfer/tests"
         }
     },
