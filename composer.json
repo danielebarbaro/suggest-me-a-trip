@@ -32,13 +32,15 @@
         "geocoder-php/nominatim-provider": "^5.7",
         "geocoder-php/cache-provider": "^4.4",
         "geocoder-php/google-maps-places-provider": "^1.4",
-        "geocoder-php/open-cage-provider": "^4.6"
+        "geocoder-php/open-cage-provider": "^4.6",
+        "swoole/ide-helper": "^5.1"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.64",
         "symfony/var-dumper": "^7.1",
         "pestphp/pest": "^3.0",
-        "mockery/mockery": "^1.6"
+        "mockery/mockery": "^1.6",
+        "phpstan/phpstan": "^1.12"
     },
     "config": {
         "allow-plugins": {

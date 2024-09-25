@@ -1,14 +1,20 @@
 <?php
 
 $finder = (new PhpCsFixer\Finder())
-    ->in(__DIR__)
+    ->in([
+        __DIR__ . '/src',
+        __DIR__ . '/lib',
+        __DIR__ . '/tests',
+    ])
     ->exclude('var')
-    ->exclude('config')
-    ->exclude('var')
+    ->exclude('lib/var')
     ->exclude('private')
     ->exclude('public')
     ->exclude('notes')
-    ->exclude('vendor');
+    ->exclude('vendor')
+    ->name('*.php')
+    ->notName('*.blade.php')
+    ->ignoreDotFiles(true);
 
 return (new PhpCsFixer\Config())
     ->setRules([

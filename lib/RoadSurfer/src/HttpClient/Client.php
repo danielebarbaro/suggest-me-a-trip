@@ -8,38 +8,29 @@ use Library\RoadSurfer\DTO\CityDTO;
 use Library\RoadSurfer\DTO\StationDTO;
 use Library\RoadSurfer\DTO\TimeFrameDTO;
 use Library\RoadSurfer\Exception\APIException;
-use Symfony\Component\HttpClient\CachingHttpClient;
-use Symfony\Component\HttpClient\HttpClient as SymfonyHttpClient;
-use Symfony\Component\HttpClient\Retry\GenericRetryStrategy;
-use Symfony\Component\HttpClient\RetryableHttpClient;
-use Symfony\Component\HttpKernel\HttpCache\StoreInterface as SymfonyStoreInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface as SymfonyClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class Client implements ClientInterface
 {
-    private const int DELAY_MS = 100;
-    private const int CACHE_TTL = 3600;
-    private const int RETRIES = 5;
-
     protected string $baseUrl;
     protected string $lang;
 
     protected SymfonyClientInterface $client;
-    protected SymfonyStoreInterface $storeCache;
 
     public function __construct(
-        SymfonyStoreInterface $storeCache,
-        ?SymfonyClientInterface $client = null
+        SymfonyClientInterface $client,
+        string $baseUrl,
+        string $lang
     ) {
-        $this->storeCache = $storeCache;
-        $this->client = $client ?? SymfonyHttpClient::create();
-        $this->baseUrl = $_ENV['API_BASE_URL'];
-        $this->lang = $_ENV['LANG'] ?? 'en';
+        $this->client = $client;
+        $this->baseUrl = rtrim($baseUrl, '/');
+        $this->lang = $lang;
     }
 
     /**
@@ -169,17 +160,12 @@ class Client implements ClientInterface
     ): array|object {
         $uri = $this->buildUri($resourcePath, $resourceId, $ignoreLanguage);
 
-        dump($uri);
+        //         dump($uri);
+
         try {
-            $response = (new CachingHttpClient(
-                $this->createRetryClient(),
-                $this->storeCache,
-            ))->request('GET', $uri, [
+            $response = $this->client->request('GET', $uri, [
                 'headers' => [
                     'X-Requested-Alias' => $operationType,
-                ],
-                'extra' => [
-                    'cache_ttl' => self::CACHE_TTL,
                 ],
             ]);
 
@@ -187,9 +173,7 @@ class Client implements ClientInterface
                 throw APIException::fromStatusCode($response->getStatusCode());
             }
 
-            $data = $response->toArray();
-
-            return $this->isAssoc($data) ? (object) $data : $data;
+            return $this->parseResponse($response);
         } catch (TransportExceptionInterface|ClientExceptionInterface|RedirectionExceptionInterface|ServerExceptionInterface $e) {
             throw APIException::fromMessage($e->getMessage());
         } catch (DecodingExceptionInterface $e) {
@@ -199,7 +183,7 @@ class Client implements ClientInterface
         }
     }
 
-    private function buildUri(
+    public function buildUri(
         string $resourcePath,
         ?string $resourceId,
         ?bool $ignoreLanguage
@@ -212,17 +196,12 @@ class Client implements ClientInterface
         ], fn ($part) => !is_null($part)));
     }
 
-    private function createRetryClient(): RetryableHttpClient
+    public function parseResponse(ResponseInterface $response): object|array
     {
-        return new RetryableHttpClient(
-            $this->client,
-            new GenericRetryStrategy([429], mt_rand(4, self::DELAY_MS)),
-            self::RETRIES
-        );
-    }
+        $data = $response->toArray();
 
-    private function isAssoc(array $array): bool
-    {
-        return array_keys($array) !== range(0, count($array) - 1);
+        $isAssoc = array_keys($data) !== range(0, count($data) - 1);
+
+        return $isAssoc ? (object) $data : $data;
     }
 }
