@@ -6,7 +6,9 @@ require_once __DIR__.'/vendor/autoload.php';
 use App\Itineraries\Services\CreateItinerariesService;
 use App\Shared\Commands\AvailableItinerariesCommand;
 use App\Shared\Commands\AvailableTripsCommand;
+use App\Shared\Services\MailhogEmailService;
 use App\Stations\Services\GetStationsService;
+use App\Trips\Commands\SendDailyTripsEmailCommand;
 use App\Trips\Services\CreateTripsService;
 use App\Utils\GeoCoderService;
 use Geocoder\Provider\OpenCage\OpenCage;
@@ -66,8 +68,10 @@ $stationService = new GetStationsService($geoCoderService);
 $tripService = new CreateTripsService($roadSurfer, $stationService);
 $trips = $tripService->execute();
 $itineraries = new CreateItinerariesService($trips);
+$emailService = new MailhogEmailService();
 
 $app->add(new AvailableTripsCommand($trips));
+$app->add(new SendDailyTripsEmailCommand($trips, $emailService));
 $app->add(new AvailableItinerariesCommand($itineraries));
 
 $app->run();
