@@ -37,7 +37,9 @@
         "swoole/ide-helper": "^5.1",
         "symfony/string": "^7.2",
         "resend/resend-php": "^0.17.0",
-        "symfony/mailer": "^7.1"
+        "symfony/mailer": "^7.1",
+        "twig/twig": "^3.0",
+        "symfony/twig-bridge": "^7.1"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.64",

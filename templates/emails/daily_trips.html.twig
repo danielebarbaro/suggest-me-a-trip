@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Daily Available Trips Report - {{ "now"|date("d F Y") }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .date-group {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .date-header {
+            font-size: 1.2em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .trip {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: white;
+            border-left: 3px solid #3498db;
+        }
+        .trip-number {
+            color: #3498db;
+            font-weight: bold;
+        }
+        .station {
+            color: #34495e;
+        }
+        .arrow {
+            color: #95a5a6;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Daily Available Trips Report</h1>
+    
+    {% for dateRange, trips in groupedTrips %}
+        <div class="date-group">
+            <div class="date-header">
+                Availability on {{ dateRange }}
+            </div>
+            
+            {% for trip in trips %}
+                <div class="trip">
+                    <span class="trip-number">{{ loop.index }}:</span>
+                    <span class="station">{{ trip.pickupStation.fullName }}</span>
+                    <span class="arrow">&gt;</span>
+                    <span class="station">{{ trip.dropoffStation.fullName }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+</body>
+</html> 

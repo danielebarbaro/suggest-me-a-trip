@@ -7,4 +7,4 @@ namespace App\Shared\Services;
 interface EmailServiceInterface
 {
     public function send(string $from, string $to, string $subject, string $htmlContent): void;
-} 
+}

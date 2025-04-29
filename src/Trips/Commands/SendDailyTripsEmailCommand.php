@@ -36,23 +36,24 @@ class SendDailyTripsEmailCommand extends Command
         try {
             $today = Carbon::today();
             $trips = $this->trips;
-            $results = [];
 
             if (empty($trips)) {
                 $output->writeln('<error>No trip found.</error>');
+
                 return Command::SUCCESS;
             }
 
-            $trips = array_filter($trips, function($trip) use ($today) {
+            $trips = array_filter($trips, function ($trip) use ($today) {
                 return $trip->timeframes['startDate'] > $today;
             });
 
             if (empty($trips)) {
                 $output->writeln('<error>No future trips found.</error>');
+
                 return Command::SUCCESS;
             }
 
-            usort($trips, function($a, $b) {
+            usort($trips, function ($a, $b) {
                 return $a->timeframes['startDate'] <=> $b->timeframes['startDate'];
             });
 
@@ -73,26 +74,9 @@ class SendDailyTripsEmailCommand extends Command
                 $groupedTrips[$dateKey][] = $trip;
             }
 
-            foreach ($groupedTrips as $dateRange => $tripsInGroup) {
-                $results[] = sprintf("\nAvailability on %s:", $dateRange);
-
-                foreach ($tripsInGroup as $index => $trip) {
-                    $results[] = sprintf(
-                        "%d: %s > %s",
-                        $index + 1,
-                        $trip->pickupStation->fullName,
-                        $trip->dropoffStation->fullName
-                    );
-                }
-            }
-
-            $htmlContent = sprintf(
-                '<html><body>
-                    <h1>Daily Available Trips Report</h1>
-                    <pre style="font-family: monospace; white-space: pre-wrap;">%s</pre>
-                </body></html>',
-                htmlspecialchars(implode("\n", $results))
-            );
+            $templateData = [
+                'groupedTrips' => $groupedTrips,
+            ];
 
             $recipientEmails = explode(',', $_ENV['NOTIFICATION_EMAILS']);
 
@@ -100,15 +84,17 @@ class SendDailyTripsEmailCommand extends Command
                 $this->emailService->send(
                     $_ENV['NOTIFICATION_FROM_EMAIL'],
                     trim($email),
-                    'Daily Available Trips Report - ' . date('Y-m-d'),
-                    $htmlContent
+                    'Daily Available Trips Report - '.date('Y-m-d'),
+                    json_encode($templateData)
                 );
             }
 
             $output->writeln('Daily trips email sent successfully!');
+
             return Command::SUCCESS;
         } catch (Exception $e) {
-            $output->writeln('<error>Error sending daily trips email: ' . $e->getMessage() . '</error>');
+            $output->writeln('<error>Error sending daily trips email: '.$e->getMessage().'</error>');
+
             return Command::FAILURE;
         }
     }
