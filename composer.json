@@ -34,7 +34,9 @@
         "geocoder-php/cache-provider": "^4.4",
         "geocoder-php/google-maps-places-provider": "^1.4",
         "geocoder-php/open-cage-provider": "^4.6",
-        "swoole/ide-helper": "^5.1"
+        "swoole/ide-helper": "^5.1",
+        "symfony/string": "^7.2",
+        "resend/resend-php": "^0.9.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.64",

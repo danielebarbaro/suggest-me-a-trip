@@ -47,7 +47,7 @@ $retryableHttpClient = new RetryableHttpClient(
     5
 );
 
-$domainClient = new Client($retryableHttpClient, $_ENV['API_BASE_URL'], $_ENV['LANG']);
+$domainClient = new Client($retryableHttpClient, $_ENV['API_BASE_URL'], $_ENV['APILANG']);
 
 $cachingHttpClient = new CachingHttpClient(
     $retryableHttpClient,
