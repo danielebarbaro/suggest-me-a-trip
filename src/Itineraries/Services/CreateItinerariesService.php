@@ -74,16 +74,19 @@ class CreateItinerariesService
         array $options
     ): bool {
         if ($this->areTripsConnectedByCity($currentTrip, $nextTrip)) {
-            if ($options['noSameCountry']
-                && in_array($nextTrip->dropoffStation->country, $visitedCountries)
-            ) {
-                return false;
+            if ($options['checkTimeFrame']) {
+                if (empty($currentTrip->timeframes) && empty($nextTrip->timeframes)) {
+                    return false;
+                }
+
+                $isTimeFrameCompatible = $this->isTimeFrameCompatible($currentTrip, $nextTrip, $options);
+                if ($isTimeFrameCompatible === false) {
+                    return false;
+                }
             }
 
-            if ($options['checkTimeFrame']
-                && !empty($currentTrip->timeframes)
-                && !empty($nextTrip->timeframes)
-                && $this->isTimeFrameCompatible($currentTrip, $nextTrip, $options)
+            if ($options['noSameCountry']
+                && in_array($nextTrip->dropoffStation->country, $visitedCountries)
             ) {
                 return false;
             }
@@ -130,6 +133,10 @@ class CreateItinerariesService
 
         $dropoffStartAt = $nextTrip->timeframes['startDate']->clone();
         $dropoffEndAt = $nextTrip->timeframes['endDate']->clone();
+
+        if ($pickupStartAt->diffInDays($dropoffStartAt) < $minDaysDifferenceBetweenStartAndEnd) {
+            return false;
+        }
 
         if ($pickupEndAt <= $dropoffStartAt) {
             return true;
