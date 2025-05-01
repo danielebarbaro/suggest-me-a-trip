@@ -82,6 +82,7 @@ class SendDailyTripsEmailCommand extends Command
 
             foreach ($recipientEmails as $email) {
                 $this->emailService->send(
+                    'emails/daily_trips.html.twig',
                     $_ENV['NOTIFICATION_FROM_EMAIL'],
                     trim($email),
                     'Daily Available Trips Report - '.date('Y-m-d'),

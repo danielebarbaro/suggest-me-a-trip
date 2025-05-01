@@ -9,6 +9,7 @@ use App\Shared\Commands\AvailableTripsCommand;
 use App\Shared\Services\MailhogEmailService;
 use App\Stations\Services\GetStationsService;
 use App\Trips\Commands\SendDailyTripsEmailCommand;
+use App\Itineraries\Commands\SendDailyItinerariesEmailCommand;
 use App\Trips\Services\CreateTripsService;
 use App\Utils\GeoCoderService;
 use Geocoder\Provider\OpenCage\OpenCage;
@@ -33,7 +34,7 @@ $dotenv->load(__DIR__.'/.env');
 
 $cacheDir = __DIR__.'/var/cache';
 
-$app = new Application('A Basic RoadSurfer Rally cli', '2.1.0');
+$app = new Application('A Basic RoadSurfer Rally cli', '3.1.0');
 
 $httpStoreCache = new Store($cacheDir);
 $geocoderProvider = new OpenCage(new Psr18Client(), $_ENV['GEOCODE_PROVIDER_API_KEY']);
@@ -67,11 +68,12 @@ $roadSurfer = new RoadSurfer($cachingDecorator, new Cache($generalCacheAdapter))
 $stationService = new GetStationsService($geoCoderService);
 $tripService = new CreateTripsService($roadSurfer, $stationService);
 $trips = $tripService->execute();
-$itineraries = new CreateItinerariesService($trips);
+$itineraryService = new CreateItinerariesService($trips);
 $emailService = new MailhogEmailService();
 
 $app->add(new AvailableTripsCommand($trips));
 $app->add(new SendDailyTripsEmailCommand($trips, $emailService));
-$app->add(new AvailableItinerariesCommand($itineraries));
+$app->add(new AvailableItinerariesCommand($itineraryService));
+$app->add(new SendDailyItinerariesEmailCommand($itineraryService, $emailService));
 
 $app->run();

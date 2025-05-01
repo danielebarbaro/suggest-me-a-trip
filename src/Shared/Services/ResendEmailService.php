@@ -20,10 +20,15 @@ class ResendEmailService implements EmailServiceInterface
         $this->twig = new Environment($loader);
     }
 
-    public function send(string $from, string $to, string $subject, string $htmlContent): void
-    {
+    public function send(
+        string $template,
+        string $from,
+        string $to,
+        string $subject,
+        string $htmlContent
+    ): void {
         $html = $this->twig->render(
-            'emails/daily_trips.html.twig',
+            $template,
             json_decode($htmlContent, true)
         );
 

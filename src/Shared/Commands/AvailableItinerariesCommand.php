@@ -62,7 +62,7 @@ class AvailableItinerariesCommand extends Command
 
         $options = [
             'noSameCountry' => $input->getOption('visit-country-just-once') !== 'off',
-            'minDaysDifferenceBetweenStartAndEnd' => 4,
+            'minDaysDifferenceBetweenStartAndEnd' => 3,
             'checkTimeFrame' => $input->getOption('check-time-frame') !== 'off',
             'minSteps' => $input->getOption('min-steps') ?? 2,
         ];
