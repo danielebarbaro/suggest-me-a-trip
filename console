@@ -7,6 +7,7 @@ use App\Itineraries\Services\CreateItinerariesService;
 use App\Shared\Commands\AvailableItinerariesCommand;
 use App\Shared\Commands\AvailableTripsCommand;
 use App\Shared\Services\MailhogEmailService;
+use App\Shared\Services\ResendEmailService;
 use App\Shared\Services\TursoEmailService;
 use App\Stations\Services\GetStationsService;
 use App\Trips\Commands\SendDailyTripsEmailCommand;
@@ -70,7 +71,7 @@ $stationService = new GetStationsService($geoCoderService);
 $tripService = new CreateTripsService($roadSurfer, $stationService);
 $trips = $tripService->execute();
 $itineraryService = new CreateItinerariesService($trips);
-$emailService = new MailhogEmailService();
+$emailService = new ResendEmailService($_ENV['RESEND_API_KEY']);
 
 $tursoEmailService = new TursoEmailService($_ENV['TURSO_DATABASE_URL'], $_ENV['TURSO_AUTH_TOKEN']);
 
