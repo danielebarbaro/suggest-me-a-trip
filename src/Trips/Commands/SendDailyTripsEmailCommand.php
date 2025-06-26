@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Trips\Commands;
 
 use App\Shared\Services\EmailServiceInterface;
+use App\Shared\Services\TursoEmailService;
 use Carbon\Carbon;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -15,12 +16,14 @@ class SendDailyTripsEmailCommand extends Command
 {
     private array $trips;
     private EmailServiceInterface $emailService;
+    private ?TursoEmailService $tursoEmailService;
 
-    public function __construct(array $trips, EmailServiceInterface $emailService)
+    public function __construct(array $trips, EmailServiceInterface $emailService, ?TursoEmailService $tursoEmailService = null)
     {
         parent::__construct();
         $this->trips = $trips;
         $this->emailService = $emailService;
+        $this->tursoEmailService = $tursoEmailService;
     }
 
     protected function configure(): void
@@ -78,7 +81,14 @@ class SendDailyTripsEmailCommand extends Command
                 'groupedTrips' => $groupedTrips,
             ];
 
-            $recipientEmails = explode(',', $_ENV['NOTIFICATION_EMAILS']);
+            $recipientEmails = $this->getRecipientEmails($output);
+            
+            if (empty($recipientEmails)) {
+                $output->writeln('<e>No recipient emails found. Check Turso configuration or NOTIFICATION_EMAILS env variable.</e>');
+                return Command::FAILURE;
+            }
+
+            $output->writeln(sprintf('Sending emails to %d recipients...', count($recipientEmails)));
 
             foreach ($recipientEmails as $email) {
                 $this->emailService->send(
@@ -98,5 +108,30 @@ class SendDailyTripsEmailCommand extends Command
 
             return Command::FAILURE;
         }
+    }
+
+    private function getRecipientEmails(OutputInterface $output): array
+    {
+        if ($this->tursoEmailService && $this->tursoEmailService->isConfigured()) {
+            $output->writeln('Retrieving emails from Turso database...');
+            $tursoEmails = $this->tursoEmailService->getActiveEmails();
+            
+            if (!empty($tursoEmails)) {
+                $output->writeln(sprintf('Found %d emails from Turso database', count($tursoEmails)));
+                return $tursoEmails;
+            } else {
+                $output->writeln('<comment>No emails found in Turso database, falling back to NOTIFICATION_EMAILS</comment>');
+            }
+        } else {
+            $output->writeln('<comment>Turso service not configured, using NOTIFICATION_EMAILS</comment>');
+        }
+
+        if (isset($_ENV['NOTIFICATION_EMAILS']) && !empty($_ENV['NOTIFICATION_EMAILS'])) {
+            $emails = array_map('trim', explode(',', $_ENV['NOTIFICATION_EMAILS']));
+            $output->writeln(sprintf('Using %d emails from NOTIFICATION_EMAILS', count($emails)));
+            return $emails;
+        }
+
+        return [];
     }
 }

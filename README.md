@@ -7,6 +7,7 @@ The application processes trips between multiple cities, calculates distances, a
  - **Available Itineraries**: Generate and list smart itineraries with customizable steps (number of stations) and sort them by distance.
  - **Available Trips**: List all available trips, with an option to filter by specific countries.
  - **Distance Calculation**: Utilizes the Haversine formula to calculate the real-world distances between stations.
+ - **Dynamic Email Lists**: Integrates with Turso database from the landing page to use dynamic subscriber lists instead of static email configurations.
 
 ## Installation
 1. Clone repo

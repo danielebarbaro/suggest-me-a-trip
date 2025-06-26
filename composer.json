@@ -40,7 +40,8 @@
         "symfony/mailer": "^7.1",
         "twig/twig": "^3.0",
         "symfony/twig-bridge": "^7.1",
-        "monolog/monolog": "^3.7"
+        "monolog/monolog": "^3.7",
+        "turso/libsql": "^0.2.5"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.64",

@@ -7,6 +7,7 @@ use App\Itineraries\Services\CreateItinerariesService;
 use App\Shared\Commands\AvailableItinerariesCommand;
 use App\Shared\Commands\AvailableTripsCommand;
 use App\Shared\Services\MailhogEmailService;
+use App\Shared\Services\TursoEmailService;
 use App\Stations\Services\GetStationsService;
 use App\Trips\Commands\SendDailyTripsEmailCommand;
 use App\Itineraries\Commands\SendDailyItinerariesEmailCommand;
@@ -50,7 +51,7 @@ $retryableHttpClient = new RetryableHttpClient(
     5
 );
 
-$domainClient = new Client($retryableHttpClient, $_ENV['API_BASE_URL'], $_ENV['APILANG']);
+$domainClient = new Client($retryableHttpClient, $_ENV['API_BASE_URL'], $_ENV['API_LANG']);
 
 $cachingHttpClient = new CachingHttpClient(
     $retryableHttpClient,
@@ -71,9 +72,11 @@ $trips = $tripService->execute();
 $itineraryService = new CreateItinerariesService($trips);
 $emailService = new MailhogEmailService();
 
+$tursoEmailService = new TursoEmailService($_ENV['TURSO_DATABASE_URL'], $_ENV['TURSO_AUTH_TOKEN']);
+
 $app->add(new AvailableTripsCommand($trips));
-$app->add(new SendDailyTripsEmailCommand($trips, $emailService));
+$app->add(new SendDailyTripsEmailCommand($trips, $emailService, $tursoEmailService));
 $app->add(new AvailableItinerariesCommand($itineraryService));
-$app->add(new SendDailyItinerariesEmailCommand($itineraryService, $emailService));
+$app->add(new SendDailyItinerariesEmailCommand($itineraryService, $emailService, $tursoEmailService));
 
 $app->run();
