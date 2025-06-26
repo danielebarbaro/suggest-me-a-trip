@@ -17,7 +17,7 @@ class TursoEmailService
     {
         $this->tursoUrl = $tursoUrl;
         $this->tursoAuthToken = $tursoAuthToken;
-        
+
         if ($this->isConfigured()) {
             try {
                 $this->database = @new Database(
@@ -25,7 +25,7 @@ class TursoEmailService
                     authToken: $tursoAuthToken
                 );
             } catch (Exception $e) {
-                error_log("TursoEmailService constructor error: " . $e->getMessage());
+                error_log('TursoEmailService constructor error: '.$e->getMessage());
                 $this->database = null;
             }
         }
@@ -45,7 +45,7 @@ class TursoEmailService
 
             $emails = [];
             $rows = $result->fetchArray();
-            
+
             foreach ($rows as $row) {
                 if (isset($row['email'])) {
                     $emails[] = $row['email'];
@@ -53,9 +53,9 @@ class TursoEmailService
             }
 
             return $emails;
-
         } catch (Exception $e) {
-            error_log("TursoEmailService::getActiveEmails() - " . $e->getMessage());
+            error_log('TursoEmailService::getActiveEmails() - '.$e->getMessage());
+
             return [];
         }
     }
@@ -64,4 +64,4 @@ class TursoEmailService
     {
         return !empty($this->tursoUrl) && !empty($this->tursoAuthToken);
     }
-} 
+}

@@ -82,9 +82,10 @@ class SendDailyTripsEmailCommand extends Command
             ];
 
             $recipientEmails = $this->getRecipientEmails($output);
-            
+
             if (empty($recipientEmails)) {
                 $output->writeln('<e>No recipient emails found. Check Turso configuration or NOTIFICATION_EMAILS env variable.</e>');
+
                 return Command::FAILURE;
             }
 
@@ -115,9 +116,10 @@ class SendDailyTripsEmailCommand extends Command
         if ($this->tursoEmailService && $this->tursoEmailService->isConfigured()) {
             $output->writeln('Retrieving emails from Turso database...');
             $tursoEmails = $this->tursoEmailService->getActiveEmails();
-            
+
             if (!empty($tursoEmails)) {
                 $output->writeln(sprintf('Found %d emails from Turso database', count($tursoEmails)));
+
                 return $tursoEmails;
             } else {
                 $output->writeln('<comment>No emails found in Turso database, falling back to NOTIFICATION_EMAILS</comment>');
@@ -129,6 +131,7 @@ class SendDailyTripsEmailCommand extends Command
         if (isset($_ENV['NOTIFICATION_EMAILS']) && !empty($_ENV['NOTIFICATION_EMAILS'])) {
             $emails = array_map('trim', explode(',', $_ENV['NOTIFICATION_EMAILS']));
             $output->writeln(sprintf('Using %d emails from NOTIFICATION_EMAILS', count($emails)));
+
             return $emails;
         }
 
