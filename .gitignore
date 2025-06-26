@@ -5,7 +5,8 @@
 /var/cache/*
 /var/logs/*
 /vendor/
-composer.lock
+/front-landing/*
+!/front-landing/.gitkeep
 
 ###> phpunit/phpunit ###
 /phpunit.xml
