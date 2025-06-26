@@ -39,25 +39,37 @@ beforeEach(function () {
         $this->station1,
         $this->station2,
         ['italy', 'germany'],
-        [],
+        [
+            'startDate' => Carbon::now(),
+            'endDate' => Carbon::now()->addDays(3),
+        ],
     );
     $this->trip2 = new Trip(
         $this->station2,
         $this->station3,
         ['germany', 'france'],
-        [],
+        [
+            'startDate' => Carbon::now()->addDays(5),
+            'endDate' => Carbon::now()->addDays(8),
+        ],
     );
     $this->trip3 = new Trip(
         $this->station3,
         $this->station4,
         ['france', 'italy'],
-        [],
+        [
+            'startDate' => Carbon::now()->addDays(10),
+            'endDate' => Carbon::now()->addDays(13),
+        ],
     );
     $this->trip4 = new Trip(
         $this->station4,
         $this->station1,
-        ['belgium', 'france'],
-        [],
+        ['italy', 'italy'],
+        [
+            'startDate' => Carbon::now()->addDays(15),
+            'endDate' => Carbon::now()->addDays(18),
+        ],
     );
 
     $this->trips = [$this->trip1, $this->trip2, $this->trip3, $this->trip4];

@@ -37,9 +37,7 @@ class CreateItinerariesService
         array &$routes,
         array $options,
     ): void {
-        if (count($visitedTrips) <= $options['minSteps']
-            && count($visitedTrips) > 1
-        ) {
+        if (count($visitedTrips) >= $options['minSteps']) {
             $routes[] = $visitedTrips;
         }
 
