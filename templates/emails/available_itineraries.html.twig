@@ -2,84 +2,75 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Daily Available Itineraries Report - {{ "now"|date("d F Y") }}</title>
+    <title>🗺️ Daily Available Itineraries Report - {{ "now"|date("d F Y") }}</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        h1 {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-        }
-        .itinerary {
-            margin: 20px 0;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
-        }
-        .itinerary-header {
-            font-size: 1.2em;
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-weight: bold;
-        }
-        .trip {
-            margin: 10px 0;
-            padding: 10px;
-            background-color: white;
-            border-left: 3px solid #3498db;
-        }
-        .trip-title {
-            color: #34495e;
-            font-weight: bold;
-        }
-        .trip-details {
-            color: #7f8c8d;
-            font-size: 0.9em;
-            margin-top: 5px;
-        }
-        .distance {
-            color: #e74c3c;
-            font-weight: bold;
-        }
-        {% if filterCountry %}
-        .highlight {
-            background-color: #fff3cd;
-            padding: 2px 5px;
-            border-radius: 3px;
-        }
-        {% endif %}
+        {% include 'emails/_components/email-styles.twig' %}
+        {% include 'emails/_components/itineraries-styles.twig' %}
     </style>
 </head>
 <body>
-    <h1>Daily Available Itineraries Report</h1>
+    <div class="container">
+        {% include 'emails/_components/header.twig' with {
+            'title': 'Daily Available Itineraries',
+            'date': "now"|date("l, F j, Y")
+        } %}
 
-    {% if filterCountry %}
-        <p>Filtered by country: <strong>{{ filterCountry }}</strong></p>
-    {% endif %}
-
-    {% for itinerary in groupedItineraries %}
-        <div class="itinerary">
-            <div class="itinerary-header">
-                {{ itinerary.title }}
+        {% if filterCountry %}
+            <div class="filter-info">
+                🔍 Filtered by country: <span class="highlight">{{ filterCountry|upper }}</span>
             </div>
+        {% endif %}
 
-            {% for trip in itinerary.trips %}
-                <div class="trip">
-                    <div class="trip-title">{{ trip.title }}</div>
-                    <div class="trip-details">
-                        <strong>{{ trip.timeframes.startDate }} -> {{ trip.timeframes.endDate }}</strong> |
-                        <span class="distance">{{ trip.timeframes.distance }}</span>
-                    </div>
-                </div>
+        <div class="content">
+            <p class="intro-text">
+                Discover your next adventure with our carefully curated itineraries. Each route offers unique experiences and stunning destinations.
+            </p>
+            
+            {% set totalItineraries = 0 %}
+            {% set totalTrips = 0 %}
+            
+            {% for itinerary in groupedItineraries %}
+                {% set totalItineraries = totalItineraries + 1 %}
+                {% set totalTrips = totalTrips + itinerary.trips|length %}
             {% endfor %}
+            
+            {% include 'emails/_components/stats-section.twig' with {
+                'stats': [
+                    {'number': totalItineraries, 'label': 'Available Itineraries'},
+                    {'number': totalTrips, 'label': 'Total Trips'},
+                    {'number': totalItineraries > 0 ? (totalTrips/totalItineraries)|round(0) : 0, 'label': 'Avg Trips per Route'}
+                ]
+            } %}
+            
+            <div class="itineraries-section">
+                <h2 class="section-title">Available Routes</h2>
+                
+                {% for itinerary in groupedItineraries %}
+                    <div class="itinerary">
+                        <div class="itinerary-header">
+                            <span>{{ itinerary.title }}</span>
+                            <span>{{ itinerary.trips|length }} trips</span>
+                        </div>
+
+                        {% for trip in itinerary.trips %}
+                            <div class="trip">
+                                <div class="trip-title">{{ trip.title }}</div>
+                                <div class="trip-details">
+                                    <div class="trip-dates">
+                                        📅 <strong>{{ trip.timeframes.startDate }} → {{ trip.timeframes.endDate }}</strong>
+                                    </div>
+                                    <div class="distance">
+                                        {{ trip.timeframes.distance }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
         </div>
-    {% endfor %}
+        
+        {% include 'emails/_components/footer.twig' %}
+    </div>
 </body>
 </html>

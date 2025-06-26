@@ -1,0 +1,83 @@
+        .filter-info {
+            background: #f0f9ff;
+            color: #0369a1;
+            padding: 15px 40px;
+            font-weight: 500;
+        }
+
+        .itineraries-section {
+            margin-top: 50px;
+        }
+
+        .itinerary {
+            margin: 40px 0;
+        }
+
+        .itinerary-header {
+            background: #bed255;
+            color: #313b00;
+            padding: 15px 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .trip {
+            padding: 25px;
+            border-bottom: 1px solid #eeeeee;
+            background: white;
+        }
+
+        .trip:last-child {
+            border-bottom: none;
+        }
+
+        .trip-title {
+            color: #313b00;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .trip-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .trip-dates {
+            color: #666666;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .distance {
+            background: #7b8303;
+            color: #ffffff;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .highlight {
+            background: #f0f9ff;
+            color: #0369a1;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .trip-details {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+        } 

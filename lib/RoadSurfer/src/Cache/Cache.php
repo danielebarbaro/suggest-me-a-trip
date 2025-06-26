@@ -18,7 +18,8 @@ class Cache implements CacheInterface
         $cachedValue = $this->cache->getItem($cacheKey);
 
         if (!$cachedValue->isHit()) {
-            $cachedValue->set($callback());
+            $result = $callback();
+            $cachedValue->set($result);
             $this->cache->save($cachedValue);
         }
 
