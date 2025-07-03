@@ -7,6 +7,7 @@ namespace App\Shared\Services;
 use Resend;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
+use Exception;
 
 class ResendEmailService implements EmailServiceInterface
 {
@@ -43,10 +44,11 @@ class ResendEmailService implements EmailServiceInterface
                     'subject' => $subject,
                     'html' => $html,
                 ]);
-                return; 
-            } catch (\Exception $e) {
+
+                return;
+            } catch (Exception $e) {
                 if ($attempt === $maxAttempts) {
-                    throw $e; 
+                    throw $e;
                 }
                 usleep($delay);
                 $delay *= 2;
