@@ -32,11 +32,25 @@ class ResendEmailService implements EmailServiceInterface
             json_decode($htmlContent, true)
         );
 
-        $this->resend->emails->send([
-            'from' => $from,
-            'to' => $to,
-            'subject' => $subject,
-            'html' => $html,
-        ]);
+        $maxAttempts = 5;
+        $delay = 500_000; // 500ms
+
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            try {
+                $this->resend->emails->send([
+                    'from' => $from,
+                    'to' => $to,
+                    'subject' => $subject,
+                    'html' => $html,
+                ]);
+                return; 
+            } catch (\Exception $e) {
+                if ($attempt === $maxAttempts) {
+                    throw $e; 
+                }
+                usleep($delay);
+                $delay *= 2;
+            }
+        }
     }
 }
