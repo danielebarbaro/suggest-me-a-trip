@@ -119,6 +119,12 @@
                 <table border="0" cellpadding="0" cellspacing="0" width="100%">
                     <tr>
                         <td style="text-align: center;">
+                            {% if unsubscribe_url is defined and unsubscribe_url %}
+                                <div style="font-size: 0.7rem; margin-bottom: 15px;">
+                                    <span style="color: #999999;">Non vuoi più ricevere queste email?</span>
+                                    <a href="{{ unsubscribe_url }}" style="color: #313b00; text-decoration: underline; margin-left: 5px;" target="_blank">Disiscriviti</a>
+                                </div>
+                            {% endif %}
                             <div style="font-size: 0.7rem; margin-bottom: 15px;">
                                 <span style="color: #999999;">Generated on {{ "now"|date("Y-m-d H:i:s") }}</span>
                                 <span style="color: #999999; margin: 0 10px;">•</span>
