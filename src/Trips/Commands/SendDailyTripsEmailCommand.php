@@ -77,27 +77,31 @@ class SendDailyTripsEmailCommand extends Command
                 $groupedTrips[$dateKey][] = $trip;
             }
 
-            $templateData = [
-                'groupedTrips' => $groupedTrips,
-            ];
+            $recipients = $this->getRecipientEmails($output);
 
-            $recipientEmails = $this->getRecipientEmails($output);
-
-            if (empty($recipientEmails)) {
+            if (empty($recipients)) {
                 $output->writeln('<e>No recipient emails found. Check Turso configuration or NOTIFICATION_EMAILS env variable.</e>');
 
                 return Command::FAILURE;
             }
 
-            $output->writeln(sprintf('Sending emails to %d recipients...', count($recipientEmails)));
+            $output->writeln(sprintf('Sending emails to %d recipients...', count($recipients)));
 
-            foreach ($recipientEmails as $email) {
+            foreach ($recipients as $recipient) {
+                $unsubscribeUrl = $this->buildUnsubscribeUrl($recipient['unsubscribe_token'] ?? null);
+
+                $templateData = [
+                    'groupedTrips' => $groupedTrips,
+                    'unsubscribe_url' => $unsubscribeUrl,
+                ];
+
                 $this->emailService->send(
                     'emails/daily_trips.html.twig',
                     $_ENV['NOTIFICATION_FROM_EMAIL'],
-                    trim($email),
+                    trim($recipient['email']),
                     'Daily Available Trips Report - '.date('Y-m-d'),
-                    json_encode($templateData)
+                    json_encode($templateData),
+                    $this->buildUnsubscribeHeaders($unsubscribeUrl)
                 );
             }
 
@@ -132,9 +136,38 @@ class SendDailyTripsEmailCommand extends Command
             $emails = array_map('trim', explode(',', $_ENV['NOTIFICATION_EMAILS']));
             $output->writeln(sprintf('Using %d emails from NOTIFICATION_EMAILS', count($emails)));
 
-            return $emails;
+            return array_map(
+                static fn (string $email): array => ['email' => $email, 'unsubscribe_token' => null],
+                $emails
+            );
         }
 
         return [];
+    }
+
+    private function buildUnsubscribeUrl(?string $token): ?string
+    {
+        if (empty($token)) {
+            return null;
+        }
+
+        $baseUrl = rtrim($_ENV['UNSUBSCRIBE_BASE_URL'] ?? 'https://vanlife.plincode.tech', '/');
+
+        return $baseUrl.'/api/unsubscribe?token='.rawurlencode($token);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function buildUnsubscribeHeaders(?string $unsubscribeUrl): array
+    {
+        if (empty($unsubscribeUrl)) {
+            return [];
+        }
+
+        return [
+            'List-Unsubscribe' => '<'.$unsubscribeUrl.'>',
+            'List-Unsubscribe-Post' => 'List-Unsubscribe=One-Click',
+        ];
     }
 }

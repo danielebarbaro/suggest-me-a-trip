@@ -26,24 +26,31 @@ class ResendEmailService implements EmailServiceInterface
         string $from,
         string $to,
         string $subject,
-        string $htmlContent
+        string $htmlContent,
+        array $headers = []
     ): void {
         $html = $this->twig->render(
             $template,
             json_decode($htmlContent, true)
         );
 
+        $payload = [
+            'from' => $from,
+            'to' => $to,
+            'subject' => $subject,
+            'html' => $html,
+        ];
+
+        if (!empty($headers)) {
+            $payload['headers'] = $headers;
+        }
+
         $maxAttempts = 5;
         $delay = 500_000; // 500ms
 
         for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
             try {
-                $this->resend->emails->send([
-                    'from' => $from,
-                    'to' => $to,
-                    'subject' => $subject,
-                    'html' => $html,
-                ]);
+                $this->resend->emails->send($payload);
 
                 return;
             } catch (Exception $e) {

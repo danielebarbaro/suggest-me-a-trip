@@ -29,7 +29,8 @@ class MailhogEmailService implements EmailServiceInterface
         string $from,
         string $to,
         string $subject,
-        string $htmlContent
+        string $htmlContent,
+        array $headers = []
     ): void {
         $html = $this->twig->render(
             $template,
@@ -41,6 +42,10 @@ class MailhogEmailService implements EmailServiceInterface
             ->to($to)
             ->subject($subject)
             ->html($html);
+
+        foreach ($headers as $name => $value) {
+            $email->getHeaders()->addTextHeader($name, $value);
+        }
 
         $this->mailer->send($email);
     }

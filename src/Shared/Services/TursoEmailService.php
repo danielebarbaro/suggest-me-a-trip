@@ -31,6 +31,12 @@ class TursoEmailService
         }
     }
 
+    /**
+     * Returns active recipients as a list of associative arrays:
+     * ['email' => string, 'unsubscribe_token' => ?string].
+     *
+     * @return array<int, array{email: string, unsubscribe_token: ?string}>
+     */
     public function getActiveEmails(): array
     {
         if (!$this->database) {
@@ -40,7 +46,7 @@ class TursoEmailService
         try {
             $conn = $this->database->connect();
             $result = $conn->query(
-                'SELECT email FROM emails WHERE deleted_at IS NULL ORDER BY created_at DESC'
+                'SELECT email, unsubscribe_token FROM emails WHERE deleted_at IS NULL ORDER BY created_at DESC'
             );
 
             $emails = [];
@@ -48,7 +54,10 @@ class TursoEmailService
 
             foreach ($rows as $row) {
                 if (isset($row['email'])) {
-                    $emails[] = $row['email'];
+                    $emails[] = [
+                        'email' => $row['email'],
+                        'unsubscribe_token' => $row['unsubscribe_token'] ?? null,
+                    ];
                 }
             }
 
