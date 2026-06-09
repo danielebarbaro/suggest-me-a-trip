@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace App\Shared\Services;
 
+use InvalidArgumentException;
 use Resend;
+use Resend\Client;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 use Exception;
 
 class ResendEmailService implements EmailServiceInterface
 {
-    private $resend;
+    private Client $resend;
     private Environment $twig;
 
     public function __construct(string $apiKey)
@@ -28,10 +30,13 @@ class ResendEmailService implements EmailServiceInterface
         string $subject,
         string $htmlContent
     ): void {
-        $html = $this->twig->render(
-            $template,
-            json_decode($htmlContent, true)
-        );
+        $data = json_decode($htmlContent, true);
+
+        if (!is_array($data)) {
+            throw new InvalidArgumentException('Email content payload must be a valid JSON object.');
+        }
+
+        $html = $this->twig->render($template, $data);
 
         $maxAttempts = 5;
         $delay = 500_000; // 500ms
