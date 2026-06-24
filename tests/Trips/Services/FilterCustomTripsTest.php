@@ -91,3 +91,17 @@ it('sorts results by start date ascending', function () {
     expect($result)->toHaveCount(2)
         ->and($result[0]->timeframes['startDate']->toDateString())->toBe('2026-07-20');
 });
+
+it('keeps a trip whose length exactly equals max km', function () {
+    $trips = [makeTrip('italy', 'france', 1500, '2026-07-20', '2026-07-25')];
+    $result = (new FilterCustomTripsService())->execute($trips, italySubscriber('departure', 1500), Carbon::parse('2026-06-24'));
+
+    expect($result)->toHaveCount(1);
+});
+
+it('drops a trip that ends before the window starts', function () {
+    $trips = [makeTrip('italy', 'france', 800, '2026-07-01', '2026-07-10')];
+    $result = (new FilterCustomTripsService())->execute($trips, italySubscriber(), Carbon::parse('2026-06-24'));
+
+    expect($result)->toBeEmpty();
+});
