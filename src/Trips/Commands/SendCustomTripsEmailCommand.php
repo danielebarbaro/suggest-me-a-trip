@@ -63,14 +63,24 @@ class SendCustomTripsEmailCommand extends Command
             $sentCount = 0;
 
             foreach ($subscribers as $subscriber) {
-                $matches = $this->filterService->execute($this->trips, $subscriber);
+                try {
+                    $matches = $this->filterService->execute($this->trips, $subscriber);
 
-                if (empty($matches)) {
+                    if (empty($matches)) {
+                        continue;
+                    }
+
+                    $this->sendEmail($subscriber, $matches);
+                    $sentCount++;
+                } catch (Exception $e) {
+                    error_log(sprintf(
+                        'Failed to send custom trips email to %s: %s',
+                        $subscriber->email,
+                        $e->getMessage()
+                    ));
+
                     continue;
                 }
-
-                $this->sendEmail($subscriber, $matches);
-                $sentCount++;
             }
 
             $output->writeln(sprintf('Custom trips emails sent to %d subscribers.', $sentCount));

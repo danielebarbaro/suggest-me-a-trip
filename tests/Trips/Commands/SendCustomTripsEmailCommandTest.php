@@ -21,6 +21,24 @@ class RecordingEmailService implements EmailServiceInterface
     }
 }
 
+class ThrowingEmailService implements EmailServiceInterface
+{
+    public array $sent = [];
+
+    public function __construct(private string $throwForRecipient)
+    {
+    }
+
+    public function send(string $template, string $from, string $to, string $subject, string $htmlContent, array $headers = []): void
+    {
+        if ($to === $this->throwForRecipient) {
+            throw new RuntimeException('boom');
+        }
+
+        $this->sent[] = ['to' => $to, 'content' => $htmlContent];
+    }
+}
+
 class FakeTurso extends TursoEmailService
 {
     /** @var CustomTripSubscriber[] */
@@ -111,5 +129,27 @@ it('succeeds with a notice when there are no subscribers', function () {
 
     expect($email->sent)->toBeEmpty()
         ->and($tester->getDisplay())->toContain('No custom trip subscribers')
+        ->and($tester->getStatusCode())->toBe(Command::SUCCESS);
+});
+
+it('isolates a failing subscriber and still emails the rest', function () {
+    $trips = [customTrip('italy', 'france', 800, '2026-07-20', '2026-07-25')];
+    $email = new ThrowingEmailService('first@b.com');
+    $turso = new FakeTurso([customSub('first@b.com'), customSub('second@b.com')]);
+
+    $errorLog = tempnam(sys_get_temp_dir(), 'errlog');
+    $previousErrorLog = ini_set('error_log', $errorLog);
+
+    try {
+        $command = new SendCustomTripsEmailCommand($trips, $email, $turso, new FilterCustomTripsService());
+        $tester = new CommandTester($command);
+        $tester->execute([]);
+    } finally {
+        ini_set('error_log', $previousErrorLog);
+        @unlink($errorLog);
+    }
+
+    expect($email->sent)->toHaveCount(1)
+        ->and($email->sent[0]['to'])->toBe('second@b.com')
         ->and($tester->getStatusCode())->toBe(Command::SUCCESS);
 });
