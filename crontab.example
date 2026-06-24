@@ -1,2 +1,5 @@
 # Execute daily trips email command every morning at 8:00 AM
-0 8 * * * cd /path/to/your/project && php console app:send-daily-trips-email >> /var/log/daily-trips-email.log 2>&1 
+0 8 * * * cd /path/to/your/project && php console app:send-daily-trips-email >> /var/log/daily-trips-email.log 2>&1
+
+# Send custom (per-subscriber) trips email twice a day: 08:30 and 18:30
+30 8,18 * * * cd /path/to/your/project && php console send-custom-trips-email >> /var/log/custom-trips-email.log 2>&1
