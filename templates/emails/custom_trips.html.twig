@@ -1,40 +1,125 @@
 <!DOCTYPE html>
-<html lang="it">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>Your custom trips</title>
+    <title>🚐 Trip su misura - {{ "now"|date("d F Y") }}</title>
 </head>
-<body style="font-family: Arial, sans-serif; color: #222;">
-    <h1>Trip su misura</h1>
-    <p>Ecco i viaggi che corrispondono ai tuoi filtri:</p>
+<body style="margin: 0; padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; line-height: 1.6; color: #313b00; background: #f5f5f5;">
+    <!-- Main Container -->
+    <table align="center" border="0" cellpadding="0" cellspacing="0" style="max-width: 720px; width: 100%; background: white; border-radius: 0;">
 
-    {% if trips is empty %}
-        <p>Nessun viaggio trovato per i tuoi criteri.</p>
-    {% else %}
-        <table cellpadding="8" cellspacing="0" border="0" style="border-collapse: collapse; width: 100%;">
-            <thead>
-                <tr style="background: #f3f3f3; text-align: left;">
-                    <th>Tratta</th>
-                    <th>Distanza</th>
-                    <th>Periodo</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for trip in trips %}
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td>{{ trip.from }} &rarr; {{ trip.to }}</td>
-                        <td>{{ trip.length }} km</td>
-                        <td>{{ trip.start }} - {{ trip.end }}</td>
+        <!-- Header -->
+        <tr>
+            <td style="background: #313b00; color: white; padding: 30px 40px;">
+                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                    <tr>
+                        <td>
+                            <h1 style="margin: 0; font-size: 2.2rem; font-weight: 700; color: white; margin-bottom: 5px;">Trip su misura</h1>
+                            <div style="font-size: 1rem; color: #cccccc; font-weight: 400;">{{ "now"|date("l, F j, Y") }}</div>
+                        </td>
+                        <td width="60" style="text-align: center;">
+                            <div style="width: 60px; height: 60px; background: white; border-radius: 50%; display: inline-block; line-height: 60px; font-size: 2.5rem; text-align: center;">🧭</div>
+                        </td>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
+                </table>
+            </td>
+        </tr>
 
-    {% if unsubscribe_url %}
-        <p style="margin-top: 24px; font-size: 12px; color: #888;">
-            <a href="{{ unsubscribe_url }}">Disiscriviti</a>
-        </p>
-    {% endif %}
+        <!-- Content -->
+        <tr>
+            <td style="padding: 50px 40px; background: white;">
+
+                <!-- Intro Text -->
+                <p style="font-size: 1.1rem; color: #666666; margin: 0 0 40px 0; line-height: 1.6;">
+                    Ecco i viaggi che corrispondono ai filtri che hai scelto. Questi sono i trip disponibili adesso per i tuoi criteri.
+                </p>
+
+                {% if trips is empty %}
+                    <p style="font-size: 1rem; color: #666666; margin: 0;">Nessun viaggio trovato per i tuoi criteri al momento.</p>
+                {% else %}
+                    <!-- Stats Calculation -->
+                    {% set totalDistance = 0 %}
+                    {% for trip in trips %}
+                        {% set totalDistance = totalDistance + trip.length %}
+                    {% endfor %}
+
+                    <!-- Stats Section -->
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background: #f6f1e7; color: #313b00; margin: 40px 0;">
+                        <tr>
+                            <td style="padding: 30px;">
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                    <tr>
+                                        <td width="50%" style="text-align: center; padding: 0 15px;">
+                                            <div style="font-size: 2.5rem; font-weight: 700; color: #313b00; margin-bottom: 5px;">{{ trips|length }}</div>
+                                            <div style="color: #666666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Viaggi trovati</div>
+                                        </td>
+                                        <td width="50%" style="text-align: center; padding: 0 15px;">
+                                            <div style="font-size: 2.5rem; font-weight: 700; color: #313b00; margin-bottom: 5px;">{{ trips|length > 0 ? (totalDistance / trips|length)|round(0) : 0 }}</div>
+                                            <div style="color: #666666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Distanza media (km)</div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- Trips Section -->
+                    <h2 style="font-size: 1.3rem; font-weight: 600; color: #313b00; margin: 50px 0 30px 0; text-align: center;">I tuoi viaggi</h2>
+
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 40px 0;">
+                        {% for trip in trips %}
+                            <tr>
+                                <td style="padding: 25px; {% if not loop.last %}border-bottom: 1px solid #eeeeee;{% endif %} background: white;">
+                                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                        <tr>
+                                            <td width="30" style="vertical-align: top;">
+                                                <div style="background: #EC4899; color: #f5f5f5; width: 30px; height: 30px; border-radius: 50%; text-align: center; line-height: 30px; font-weight: 600; font-size: 0.8rem;">{{ loop.index }}</div>
+                                            </td>
+                                            <td style="padding-left: 20px; vertical-align: top;">
+                                                <div style="font-size: 1.1rem; color: #313b00; font-weight: 500; margin-bottom: 8px;">{{ trip.from }} → {{ trip.to }}</div>
+                                                <div style="display: inline-block; background: #bed255; color: #313b00; padding: 3px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">{{ trip.start }} - {{ trip.end }}</div>
+                                            </td>
+                                            <td width="80" style="text-align: right; vertical-align: top;">
+                                                <div style="background: #7b8303; color: #ffffff; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; display: inline-block;">{{ trip.length }} km</div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                {% endif %}
+
+            </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+            <td style="background: #f6f1e7; padding: 40px; text-align: center; color: #432205; font-size: 0.9rem;">
+                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                    <tr>
+                        <td style="text-align: center;">
+                            {% if unsubscribe_url is defined and unsubscribe_url %}
+                                <div style="font-size: 0.7rem; margin-bottom: 15px;">
+                                    <span style="color: #999999;">Non vuoi più ricevere queste email?</span>
+                                    <a href="{{ unsubscribe_url }}" style="color: #313b00; text-decoration: underline; margin-left: 5px;" target="_blank">Disiscriviti</a>
+                                </div>
+                            {% endif %}
+                            <div style="font-size: 0.7rem; margin-bottom: 15px;">
+                                <span style="color: #999999;">Generated on {{ "now"|date("Y-m-d H:i:s") }}</span>
+                                <span style="color: #999999; margin: 0 10px;">•</span>
+                                <span style="color: #999999;">Powered by</span>
+                                <a href="https://www.plincode.tech/" class="plin-code-logo" target="_blank">
+                                    <img alt="Plin Code Logo" height="20px" src="data:image/png;base64,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" />
+                                </a>
+                                <a href="https://www.plincode.tech/" style="color: #313b00; text-decoration: none; font-weight: 500; margin-left: 5px;" target="_blank">Plin Code</a>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+    </table>
 </body>
 </html>
