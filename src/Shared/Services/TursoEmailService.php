@@ -7,6 +7,7 @@ namespace App\Shared\Services;
 use Libsql\Database;
 use Exception;
 use App\Trips\CustomTripSubscriber;
+use InvalidArgumentException;
 
 class TursoEmailService
 {
@@ -36,18 +37,34 @@ class TursoEmailService
      * Returns active recipients as a list of associative arrays:
      * ['email' => string, 'unsubscribe_token' => ?string].
      *
+     * @param string|null $requiredFlag Optional whitelisted column to filter on (must equal 1).
+     *                                  Allowed values: 'sub_daily_trips', 'sub_daily_itineraries', 'sub_custom_trip'.
+     *
+     * @throws InvalidArgumentException when $requiredFlag is non-null and not in the whitelist
+     *
      * @return array<int, array{email: string, unsubscribe_token: ?string}>
      */
-    public function getActiveEmails(): array
+    public function getActiveEmails(?string $requiredFlag = null): array
     {
+        $allowedFlags = ['sub_daily_trips', 'sub_daily_itineraries', 'sub_custom_trip'];
+
+        if ($requiredFlag !== null && !in_array($requiredFlag, $allowedFlags, true)) {
+            throw new InvalidArgumentException(sprintf('Invalid flag "%s". Allowed flags: %s.', $requiredFlag, implode(', ', $allowedFlags)));
+        }
+
         if (!$this->database) {
             return [];
+        }
+
+        $where = 'deleted_at IS NULL';
+        if ($requiredFlag !== null) {
+            $where .= " AND {$requiredFlag} = 1";
         }
 
         try {
             $conn = $this->database->connect();
             $result = $conn->query(
-                'SELECT email, unsubscribe_token FROM emails WHERE deleted_at IS NULL ORDER BY created_at DESC'
+                "SELECT email, unsubscribe_token FROM emails WHERE {$where} ORDER BY created_at DESC"
             );
 
             $emails = [];
