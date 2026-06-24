@@ -10,8 +10,10 @@ use App\Shared\Services\MailhogEmailService;
 use App\Shared\Services\ResendEmailService;
 use App\Shared\Services\TursoEmailService;
 use App\Stations\Services\GetStationsService;
+use App\Trips\Commands\SendCustomTripsEmailCommand;
 use App\Trips\Commands\SendDailyTripsEmailCommand;
 use App\Itineraries\Commands\SendDailyItinerariesEmailCommand;
+use App\Trips\Services\FilterCustomTripsService;
 use App\Trips\Services\CreateTripsService;
 use App\Utils\GeoCoderService;
 use Geocoder\Provider\OpenCage\OpenCage;
@@ -77,6 +79,7 @@ $tursoEmailService = new TursoEmailService($_ENV['TURSO_DATABASE_URL'], $_ENV['T
 
 $app->add(new AvailableTripsCommand($trips));
 $app->add(new SendDailyTripsEmailCommand($trips, $emailService, $tursoEmailService));
+$app->add(new SendCustomTripsEmailCommand($trips, $emailService, $tursoEmailService, new FilterCustomTripsService()));
 $app->add(new AvailableItinerariesCommand($itineraryService));
 $app->add(new SendDailyItinerariesEmailCommand($itineraryService, $emailService, $tursoEmailService));
 
