@@ -6,6 +6,7 @@ namespace App\Shared\Services;
 
 use Libsql\Database;
 use Exception;
+use App\Trips\CustomTripSubscriber;
 
 class TursoEmailService
 {
@@ -64,6 +65,43 @@ class TursoEmailService
             return $emails;
         } catch (Exception $e) {
             error_log('TursoEmailService::getActiveEmails() - '.$e->getMessage());
+
+            return [];
+        }
+    }
+
+    /**
+     * Returns subscribers opted into the custom trip channel.
+     *
+     * @return CustomTripSubscriber[]
+     */
+    public function getCustomTripSubscribers(): array
+    {
+        if (!$this->database) {
+            return [];
+        }
+
+        try {
+            $conn = $this->database->connect();
+            $result = $conn->query(
+                'SELECT email, unsubscribe_token, custom_country, custom_direction, '
+                .'custom_max_km, custom_date_from, custom_date_to '
+                .'FROM emails '
+                .'WHERE deleted_at IS NULL AND sub_custom_trip = 1 '
+                .'ORDER BY created_at DESC'
+            );
+
+            $subscribers = [];
+            foreach ($result->fetchArray() as $row) {
+                $subscriber = CustomTripSubscriber::fromRow($row);
+                if ($subscriber !== null) {
+                    $subscribers[] = $subscriber;
+                }
+            }
+
+            return $subscribers;
+        } catch (Exception $e) {
+            error_log('TursoEmailService::getCustomTripSubscribers() - '.$e->getMessage());
 
             return [];
         }
