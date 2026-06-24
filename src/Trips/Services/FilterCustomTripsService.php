@@ -12,6 +12,7 @@ class FilterCustomTripsService
 {
     /**
      * @param Trip[] $trips
+     *
      * @return Trip[]
      */
     public function execute(array $trips, CustomTripSubscriber $sub, ?Carbon $today = null): array
