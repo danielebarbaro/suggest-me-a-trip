@@ -124,7 +124,7 @@ class SendDailyItinerariesEmailCommand extends Command
     {
         if ($this->tursoEmailService && $this->tursoEmailService->isConfigured()) {
             $output->writeln('Retrieving emails from Turso database...');
-            $tursoEmails = $this->tursoEmailService->getActiveEmails();
+            $tursoEmails = $this->tursoEmailService->getActiveEmails('sub_daily_itineraries');
 
             if (!empty($tursoEmails)) {
                 $output->writeln(sprintf('Found %d emails from Turso database', count($tursoEmails)));

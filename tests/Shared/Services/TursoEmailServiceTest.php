@@ -42,3 +42,9 @@ it('returns empty array of custom subscribers on connection error', function () 
         ->toBeArray()
         ->toBeEmpty();
 });
+
+it('throws InvalidArgumentException when an unknown flag is passed to getActiveEmails', function () {
+    $service = new TursoEmailService('', '');
+
+    $service->getActiveEmails('not_a_real_flag');
+})->throws(InvalidArgumentException::class);
