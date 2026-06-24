@@ -34,3 +34,11 @@ it('returns empty array on connection error', function () {
         ->toBeArray()
         ->toBeEmpty();
 });
+
+it('returns empty array of custom subscribers on connection error', function () {
+    $service = new TursoEmailService('invalid-url', 'test-token');
+
+    expect($service->getCustomTripSubscribers())
+        ->toBeArray()
+        ->toBeEmpty();
+});
